@@ -103,6 +103,45 @@ class KalshiClient:
             print(f"Error making Kalshi request to {endpoint}: {e}")
             return None
     
+    def fetch_market_by_event_ticker(self, event_ticker: str) -> List[UnifiedMarket]:
+        """
+        Fetch a specific market by event ticker
+        
+        Args:
+            event_ticker: The event ticker (e.g., KXXIVISITUSA-26JAN01)
+        
+        Returns:
+            List of UnifiedMarket (Kalshi events can have multiple markets)
+        """
+        try:
+            url = f"https://api.elections.kalshi.com/trade-api/v2/events/{event_ticker}"
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
+            
+            data = response.json()
+            event_data = data.get('event', {})
+            event_title = event_data.get('title', '')
+            markets = data.get('markets', [])
+            
+            unified_markets = []
+            for market_data in markets:
+                # If market title is empty, use event title
+                if not market_data.get('title'):
+                    market_data['title'] = event_title
+                
+                unified = self._convert_to_unified(market_data)
+                if unified:
+                    unified_markets.append(unified)
+            
+            if unified_markets:
+                print(f"Kalshi: Fetched {len(unified_markets)} market(s) from event '{event_ticker}'")
+            
+            return unified_markets
+            
+        except Exception as e:
+            print(f"Error fetching Kalshi event {event_ticker}: {e}")
+            return []
+    
     def fetch_markets(self, series_ticker: Optional[str] = None, status: str = "open", limit: int = 100) -> List[UnifiedMarket]:
         """
         Fetch markets from Kalshi
@@ -250,13 +289,18 @@ class KalshiClient:
                 category=category,
                 subcategory=raw_market.get("series_ticker"),
                 total_volume=raw_market.get("volume"),
-                liquidity=raw_market.get("open_interest"),
+                liquidity=float(raw_market.get("liquidity_dollars", "0").replace(",", "")) if raw_market.get("liquidity_dollars") else raw_market.get("liquidity", 0),
                 is_active=is_active,
                 is_closed=is_closed,
                 raw_data=raw_market,
                 normalized_title=normalized_title,
                 normalized_teams=normalized_teams
             )
+            
+            # Store additional stats in raw_data for easy access
+            unified.raw_data['volume_24h'] = raw_market.get('volume_24h', 0)
+            unified.raw_data['open_interest'] = raw_market.get('open_interest', 0)
+            unified.raw_data['liquidity'] = unified.liquidity
             
             return unified
             

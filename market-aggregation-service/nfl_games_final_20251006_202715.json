@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-10-06T09:52:44.791983",
+  "timestamp": "2025-10-06T20:27:15.719696",
   "sport": "NFL",
   "filters_applied": [
     "spread <= 0.05 (liquid markets only)",
@@ -7,12 +7,12 @@
     "future gameStartTime"
   ],
   "summary": {
-    "total_markets": 51,
+    "total_markets": 57,
     "by_platform": {
-      "polymarket": 19,
+      "polymarket": 25,
       "kalshi": 32
     },
-    "matched_comparisons": 12,
+    "matched_comparisons": 15,
     "arbitrage_opportunities": 0
   },
   "markets": [
@@ -47,8 +47,8 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 192368.135373,
-      "liquidity": 519225.7556,
+      "total_volume": 456816.164564,
+      "liquidity": 793707.3629,
       "is_active": true,
       "is_closed": false,
       "normalized_title": "chiefs vs. jaguars",
@@ -56,7 +56,7 @@
         "chiefs",
         "jaguars"
       ],
-      "fetched_at": "2025-10-06T04:22:43.062476"
+      "fetched_at": "2025-10-06T14:57:10.281849"
     },
     {
       "platform": "polymarket",
@@ -65,18 +65,18 @@
       "outcomes": [
         {
           "name": "Jaguars",
-          "price": 0.255,
-          "decimal_odds": 3.92,
-          "american_odds": "+292",
+          "price": 0.26,
+          "decimal_odds": 3.85,
+          "american_odds": "+284",
           "best_bid": null,
           "best_ask": null,
           "volume": null
         },
         {
           "name": "Chiefs",
-          "price": 0.745,
-          "decimal_odds": 1.34,
-          "american_odds": "-292",
+          "price": 0.74,
+          "decimal_odds": 1.35,
+          "american_odds": "-284",
           "best_bid": null,
           "best_ask": null,
           "volume": null
@@ -89,13 +89,94 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 1420.40007,
-      "liquidity": 21754.1406,
+      "total_volume": 1789.161095,
+      "liquidity": 34263.8825,
       "is_active": true,
       "is_closed": false,
       "normalized_title": "spread: jaguars (-3.5)",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:43.062648"
+      "fetched_at": "2025-10-06T14:57:10.281987"
+    },
+    {
+      "platform": "polymarket",
+      "market_id": "0x5937c579c96967b9eb8eaf6589797732ae6db3e125dc25a9361f3fe4aa9d3421",
+      "question": "Spread: Jaguars (-6.5)",
+      "outcomes": [
+        {
+          "name": "Jaguars",
+          "price": 0.215,
+          "decimal_odds": 4.65,
+          "american_odds": "+365",
+          "best_bid": null,
+          "best_ask": null,
+          "volume": null
+        },
+        {
+          "name": "Chiefs",
+          "price": 0.785,
+          "decimal_odds": 1.27,
+          "american_odds": "-365",
+          "best_bid": null,
+          "best_ask": null,
+          "volume": null
+        }
+      ],
+      "market_type": "sports",
+      "start_time": "2025-10-07T00:15:00+00:00",
+      "end_time": "2025-10-07T00:15:00+00:00",
+      "category": null,
+      "subcategory": null,
+      "sport": null,
+      "league": null,
+      "total_volume": null,
+      "liquidity": 7773.36,
+      "is_active": true,
+      "is_closed": false,
+      "normalized_title": "spread: jaguars (-6.5)",
+      "normalized_teams": [],
+      "fetched_at": "2025-10-06T14:57:10.282089"
+    },
+    {
+      "platform": "polymarket",
+      "market_id": "0x7ebc4b18d99d4bfe777d23388495e3bed33a24d18d39a2824f2ac42622600140",
+      "question": "Chiefs vs. Jaguars: O/U 42.5",
+      "outcomes": [
+        {
+          "name": "Over",
+          "price": 0.595,
+          "decimal_odds": 1.68,
+          "american_odds": "-146",
+          "best_bid": null,
+          "best_ask": null,
+          "volume": null
+        },
+        {
+          "name": "Under",
+          "price": 0.405,
+          "decimal_odds": 2.47,
+          "american_odds": "+146",
+          "best_bid": null,
+          "best_ask": null,
+          "volume": null
+        }
+      ],
+      "market_type": "sports",
+      "start_time": "2025-10-07T00:15:00+00:00",
+      "end_time": "2025-10-07T00:15:00+00:00",
+      "category": null,
+      "subcategory": null,
+      "sport": null,
+      "league": null,
+      "total_volume": 260.952116,
+      "liquidity": 11537.9388,
+      "is_active": true,
+      "is_closed": false,
+      "normalized_title": "chiefs vs. jaguars: o/u 42.5",
+      "normalized_teams": [
+        "chiefs",
+        "jaguars: o/u 42.5"
+      ],
+      "fetched_at": "2025-10-06T14:57:10.282142"
     },
     {
       "platform": "polymarket",
@@ -104,18 +185,18 @@
       "outcomes": [
         {
           "name": "Over",
-          "price": 0.535,
-          "decimal_odds": 1.87,
-          "american_odds": "-115",
+          "price": 0.53,
+          "decimal_odds": 1.89,
+          "american_odds": "-112",
           "best_bid": null,
           "best_ask": null,
           "volume": null
         },
         {
           "name": "Under",
-          "price": 0.465,
-          "decimal_odds": 2.15,
-          "american_odds": "+115",
+          "price": 0.47,
+          "decimal_odds": 2.13,
+          "american_odds": "+112",
           "best_bid": null,
           "best_ask": null,
           "volume": null
@@ -128,8 +209,8 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 6231.015657,
-      "liquidity": 70487.9974,
+      "total_volume": 6425.242928,
+      "liquidity": 149327.797,
       "is_active": true,
       "is_closed": false,
       "normalized_title": "chiefs vs. jaguars: o/u 44.5",
@@ -137,7 +218,7 @@
         "chiefs",
         "jaguars: o/u 44.5"
       ],
-      "fetched_at": "2025-10-06T04:22:43.062894"
+      "fetched_at": "2025-10-06T14:57:10.282195"
     },
     {
       "platform": "polymarket",
@@ -146,18 +227,18 @@
       "outcomes": [
         {
           "name": "Over",
-          "price": 0.43,
-          "decimal_odds": 2.33,
-          "american_odds": "+132",
+          "price": 0.435,
+          "decimal_odds": 2.3,
+          "american_odds": "+129",
           "best_bid": null,
           "best_ask": null,
           "volume": null
         },
         {
           "name": "Under",
-          "price": 0.57,
-          "decimal_odds": 1.75,
-          "american_odds": "-132",
+          "price": 0.565,
+          "decimal_odds": 1.77,
+          "american_odds": "-129",
           "best_bid": null,
           "best_ask": null,
           "volume": null
@@ -171,7 +252,7 @@
       "sport": null,
       "league": null,
       "total_volume": 36.842104,
-      "liquidity": 65342.555,
+      "liquidity": 149356.9786,
       "is_active": true,
       "is_closed": false,
       "normalized_title": "chiefs vs. jaguars: o/u 47.5",
@@ -179,7 +260,49 @@
         "chiefs",
         "jaguars: o/u 47.5"
       ],
-      "fetched_at": "2025-10-06T04:22:43.062956"
+      "fetched_at": "2025-10-06T14:57:10.282246"
+    },
+    {
+      "platform": "polymarket",
+      "market_id": "0x63c4a379640cadc78aba1a263358172655346b9f4af1f0e17e6bd4185cc13917",
+      "question": "Chiefs vs. Jaguars: O/U 50.5",
+      "outcomes": [
+        {
+          "name": "Over",
+          "price": 0.355,
+          "decimal_odds": 2.82,
+          "american_odds": "+181",
+          "best_bid": null,
+          "best_ask": null,
+          "volume": null
+        },
+        {
+          "name": "Under",
+          "price": 0.645,
+          "decimal_odds": 1.55,
+          "american_odds": "-181",
+          "best_bid": null,
+          "best_ask": null,
+          "volume": null
+        }
+      ],
+      "market_type": "sports",
+      "start_time": "2025-10-07T00:15:00+00:00",
+      "end_time": "2025-10-07T00:15:00+00:00",
+      "category": null,
+      "subcategory": null,
+      "sport": null,
+      "league": null,
+      "total_volume": null,
+      "liquidity": 4290.3801,
+      "is_active": true,
+      "is_closed": false,
+      "normalized_title": "chiefs vs. jaguars: o/u 50.5",
+      "normalized_teams": [
+        "chiefs",
+        "jaguars: o/u 50.5"
+      ],
+      "fetched_at": "2025-10-06T14:57:10.282298"
     },
     {
       "platform": "polymarket",
@@ -188,18 +311,18 @@
       "outcomes": [
         {
           "name": "Over",
-          "price": 0.295,
-          "decimal_odds": 3.39,
-          "american_odds": "+238",
+          "price": 0.29,
+          "decimal_odds": 3.45,
+          "american_odds": "+244",
           "best_bid": null,
           "best_ask": null,
           "volume": null
         },
         {
           "name": "Under",
-          "price": 0.705,
-          "decimal_odds": 1.42,
-          "american_odds": "-238",
+          "price": 0.71,
+          "decimal_odds": 1.41,
+          "american_odds": "-244",
           "best_bid": null,
           "best_ask": null,
           "volume": null
@@ -213,7 +336,7 @@
       "sport": null,
       "league": null,
       "total_volume": 892,
-      "liquidity": 18075.7916,
+      "liquidity": 6155.4312,
       "is_active": true,
       "is_closed": false,
       "normalized_title": "chiefs vs. jaguars: o/u 52.5",
@@ -221,7 +344,7 @@
         "chiefs",
         "jaguars: o/u 52.5"
       ],
-      "fetched_at": "2025-10-06T04:22:43.063081"
+      "fetched_at": "2025-10-06T14:57:10.282348"
     },
     {
       "platform": "polymarket",
@@ -254,8 +377,8 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 32.440472,
-      "liquidity": 150218.3698,
+      "total_volume": 344.695015,
+      "liquidity": 156961.1782,
       "is_active": true,
       "is_closed": false,
       "normalized_title": "chiefs vs. jaguars: o/u 46.5",
@@ -263,7 +386,7 @@
         "chiefs",
         "jaguars: o/u 46.5"
       ],
-      "fetched_at": "2025-10-06T04:22:43.064846"
+      "fetched_at": "2025-10-06T14:57:10.283752"
     },
     {
       "platform": "polymarket",
@@ -296,8 +419,8 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 118.627445,
-      "liquidity": 87687.1518,
+      "total_volume": 26619.126326,
+      "liquidity": 187932.0541,
       "is_active": true,
       "is_closed": false,
       "normalized_title": "chiefs vs. jaguars: o/u 45.5",
@@ -305,7 +428,7 @@
         "chiefs",
         "jaguars: o/u 45.5"
       ],
-      "fetched_at": "2025-10-06T04:22:43.065116"
+      "fetched_at": "2025-10-06T14:57:10.283814"
     },
     {
       "platform": "polymarket",
@@ -314,18 +437,18 @@
       "outcomes": [
         {
           "name": "Chiefs",
-          "price": 0.49,
-          "decimal_odds": 2.04,
-          "american_odds": "+104",
+          "price": 0.485,
+          "decimal_odds": 2.06,
+          "american_odds": "+106",
           "best_bid": null,
           "best_ask": null,
           "volume": null
         },
         {
           "name": "Jaguars",
-          "price": 0.51,
-          "decimal_odds": 1.96,
-          "american_odds": "-104",
+          "price": 0.515,
+          "decimal_odds": 1.94,
+          "american_odds": "-106",
           "best_bid": null,
           "best_ask": null,
           "volume": null
@@ -338,13 +461,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 32057.938016,
-      "liquidity": 172224.3754,
+      "total_volume": 43076.35471,
+      "liquidity": 240554.5266,
       "is_active": true,
       "is_closed": false,
       "normalized_title": "spread: chiefs (-3.5)",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:43.065178"
+      "fetched_at": "2025-10-06T14:57:10.283869"
     },
     {
       "platform": "polymarket",
@@ -353,18 +476,18 @@
       "outcomes": [
         {
           "name": "Eagles",
-          "price": 0.765,
-          "decimal_odds": 1.31,
-          "american_odds": "-325",
+          "price": 0.78,
+          "decimal_odds": 1.28,
+          "american_odds": "-354",
           "best_bid": null,
           "best_ask": null,
           "volume": null
         },
         {
           "name": "Giants",
-          "price": 0.235,
-          "decimal_odds": 4.26,
-          "american_odds": "+325",
+          "price": 0.22,
+          "decimal_odds": 4.55,
+          "american_odds": "+354",
           "best_bid": null,
           "best_ask": null,
           "volume": null
@@ -377,8 +500,8 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 7081.01794,
-      "liquidity": 76162.4501,
+      "total_volume": 18565.424706,
+      "liquidity": 95757.8248,
       "is_active": true,
       "is_closed": false,
       "normalized_title": "eagles vs. giants",
@@ -386,7 +509,7 @@
         "eagles",
         "giants"
       ],
-      "fetched_at": "2025-10-06T04:22:43.065257"
+      "fetched_at": "2025-10-06T14:57:10.283926"
     },
     {
       "platform": "polymarket",
@@ -395,18 +518,18 @@
       "outcomes": [
         {
           "name": "Broncos",
-          "price": 0.77,
-          "decimal_odds": 1.3,
-          "american_odds": "-334",
+          "price": 0.785,
+          "decimal_odds": 1.27,
+          "american_odds": "-365",
           "best_bid": null,
           "best_ask": null,
           "volume": null
         },
         {
           "name": "Jets",
-          "price": 0.23,
-          "decimal_odds": 4.35,
-          "american_odds": "+334",
+          "price": 0.215,
+          "decimal_odds": 4.65,
+          "american_odds": "+365",
           "best_bid": null,
           "best_ask": null,
           "volume": null
@@ -419,8 +542,8 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 5073.341768,
-      "liquidity": 71647.1397,
+      "total_volume": 23215.308578,
+      "liquidity": 126680.3807,
       "is_active": true,
       "is_closed": false,
       "normalized_title": "broncos vs. jets",
@@ -428,7 +551,7 @@
         "broncos",
         "jets"
       ],
-      "fetched_at": "2025-10-06T04:22:43.065329"
+      "fetched_at": "2025-10-06T14:57:10.283982"
     },
     {
       "platform": "polymarket",
@@ -437,18 +560,18 @@
       "outcomes": [
         {
           "name": "Rams",
-          "price": 0.765,
-          "decimal_odds": 1.31,
-          "american_odds": "-325",
+          "price": 0.775,
+          "decimal_odds": 1.29,
+          "american_odds": "-344",
           "best_bid": null,
           "best_ask": null,
           "volume": null
         },
         {
           "name": "Ravens",
-          "price": 0.235,
-          "decimal_odds": 4.26,
-          "american_odds": "+325",
+          "price": 0.225,
+          "decimal_odds": 4.44,
+          "american_odds": "+344",
           "best_bid": null,
           "best_ask": null,
           "volume": null
@@ -461,8 +584,8 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 960.669337,
-      "liquidity": 28324.842,
+      "total_volume": 7049.466504,
+      "liquidity": 47931.0272,
       "is_active": true,
       "is_closed": false,
       "normalized_title": "rams vs. ravens",
@@ -470,7 +593,7 @@
         "rams",
         "ravens"
       ],
-      "fetched_at": "2025-10-06T04:22:43.065394"
+      "fetched_at": "2025-10-06T14:57:10.284131"
     },
     {
       "platform": "polymarket",
@@ -479,18 +602,18 @@
       "outcomes": [
         {
           "name": "Cowboys",
-          "price": 0.635,
-          "decimal_odds": 1.57,
-          "american_odds": "-173",
+          "price": 0.63,
+          "decimal_odds": 1.59,
+          "american_odds": "-170",
           "best_bid": null,
           "best_ask": null,
           "volume": null
         },
         {
           "name": "Panthers",
-          "price": 0.365,
-          "decimal_odds": 2.74,
-          "american_odds": "+173",
+          "price": 0.37,
+          "decimal_odds": 2.7,
+          "american_odds": "+170",
           "best_bid": null,
           "best_ask": null,
           "volume": null
@@ -503,8 +626,8 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 5810.315788,
-      "liquidity": 71170.2761,
+      "total_volume": 6624.285205,
+      "liquidity": 149927.559,
       "is_active": true,
       "is_closed": false,
       "normalized_title": "cowboys vs. panthers",
@@ -512,7 +635,7 @@
         "cowboys",
         "panthers"
       ],
-      "fetched_at": "2025-10-06T04:22:43.065471"
+      "fetched_at": "2025-10-06T14:57:10.284190"
     },
     {
       "platform": "polymarket",
@@ -521,18 +644,18 @@
       "outcomes": [
         {
           "name": "Cardinals",
-          "price": 0.3,
-          "decimal_odds": 3.33,
-          "american_odds": "+233",
+          "price": 0.295,
+          "decimal_odds": 3.39,
+          "american_odds": "+238",
           "best_bid": null,
           "best_ask": null,
           "volume": null
         },
         {
           "name": "Colts",
-          "price": 0.7,
-          "decimal_odds": 1.43,
-          "american_odds": "-233",
+          "price": 0.705,
+          "decimal_odds": 1.42,
+          "american_odds": "-238",
           "best_bid": null,
           "best_ask": null,
           "volume": null
@@ -545,8 +668,8 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 4725.388885,
-      "liquidity": 17640.1562,
+      "total_volume": 9313.854793,
+      "liquidity": 80480.294,
       "is_active": true,
       "is_closed": false,
       "normalized_title": "cardinals vs. colts",
@@ -554,7 +677,49 @@
         "cardinals",
         "colts"
       ],
-      "fetched_at": "2025-10-06T04:22:43.065534"
+      "fetched_at": "2025-10-06T14:57:10.284245"
+    },
+    {
+      "platform": "polymarket",
+      "market_id": "0x102c98f54c6d5be80d8380ce55a93ae10bc4fd285729b3aa33a6712484c9375a",
+      "question": "Seahawks vs. Jaguars",
+      "outcomes": [
+        {
+          "name": "Seahawks",
+          "price": 0.515,
+          "decimal_odds": 1.94,
+          "american_odds": "-106",
+          "best_bid": null,
+          "best_ask": null,
+          "volume": null
+        },
+        {
+          "name": "Jaguars",
+          "price": 0.485,
+          "decimal_odds": 2.06,
+          "american_odds": "+106",
+          "best_bid": null,
+          "best_ask": null,
+          "volume": null
+        }
+      ],
+      "market_type": "sports",
+      "start_time": "2025-10-12T17:00:00+00:00",
+      "end_time": "2025-10-19T17:00:00+00:00",
+      "category": null,
+      "subcategory": null,
+      "sport": null,
+      "league": null,
+      "total_volume": 4762.803631,
+      "liquidity": 16093.4463,
+      "is_active": true,
+      "is_closed": false,
+      "normalized_title": "seahawks vs. jaguars",
+      "normalized_teams": [
+        "seahawks",
+        "jaguars"
+      ],
+      "fetched_at": "2025-10-06T14:57:10.284299"
     },
     {
       "platform": "polymarket",
@@ -563,18 +728,18 @@
       "outcomes": [
         {
           "name": "Chargers",
-          "price": 0.695,
-          "decimal_odds": 1.44,
-          "american_odds": "-227",
+          "price": 0.7,
+          "decimal_odds": 1.43,
+          "american_odds": "-233",
           "best_bid": null,
           "best_ask": null,
           "volume": null
         },
         {
           "name": "Dolphins",
-          "price": 0.305,
-          "decimal_odds": 3.28,
-          "american_odds": "+227",
+          "price": 0.3,
+          "decimal_odds": 3.33,
+          "american_odds": "+233",
           "best_bid": null,
           "best_ask": null,
           "volume": null
@@ -587,8 +752,8 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 2293.406188,
-      "liquidity": 71776.0675,
+      "total_volume": 3011.409643,
+      "liquidity": 140186.3357,
       "is_active": true,
       "is_closed": false,
       "normalized_title": "chargers vs. dolphins",
@@ -596,7 +761,7 @@
         "chargers",
         "dolphins"
       ],
-      "fetched_at": "2025-10-06T04:22:43.065656"
+      "fetched_at": "2025-10-06T14:57:10.284359"
     },
     {
       "platform": "polymarket",
@@ -629,8 +794,8 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 3008.802846,
-      "liquidity": 3451.5809,
+      "total_volume": 5262.898379,
+      "liquidity": 78338.8517,
       "is_active": true,
       "is_closed": false,
       "normalized_title": "patriots vs. saints",
@@ -638,7 +803,7 @@
         "patriots",
         "saints"
       ],
-      "fetched_at": "2025-10-06T04:22:43.065724"
+      "fetched_at": "2025-10-06T14:57:10.284421"
     },
     {
       "platform": "polymarket",
@@ -647,18 +812,18 @@
       "outcomes": [
         {
           "name": "Browns",
-          "price": 0.295,
-          "decimal_odds": 3.39,
-          "american_odds": "+238",
+          "price": 0.31,
+          "decimal_odds": 3.23,
+          "american_odds": "+222",
           "best_bid": null,
           "best_ask": null,
           "volume": null
         },
         {
           "name": "Steelers",
-          "price": 0.705,
-          "decimal_odds": 1.42,
-          "american_odds": "-238",
+          "price": 0.69,
+          "decimal_odds": 1.45,
+          "american_odds": "-222",
           "best_bid": null,
           "best_ask": null,
           "volume": null
@@ -671,8 +836,8 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 16504.63293,
-      "liquidity": 100592.6766,
+      "total_volume": 20491.301057,
+      "liquidity": 136125.4306,
       "is_active": true,
       "is_closed": false,
       "normalized_title": "browns vs. steelers",
@@ -680,7 +845,7 @@
         "browns",
         "steelers"
       ],
-      "fetched_at": "2025-10-06T04:22:43.065785"
+      "fetched_at": "2025-10-06T14:57:10.284476"
     },
     {
       "platform": "polymarket",
@@ -689,18 +854,18 @@
       "outcomes": [
         {
           "name": "Titans",
-          "price": 0.295,
-          "decimal_odds": 3.39,
-          "american_odds": "+238",
+          "price": 0.305,
+          "decimal_odds": 3.28,
+          "american_odds": "+227",
           "best_bid": null,
           "best_ask": null,
           "volume": null
         },
         {
           "name": "Raiders",
-          "price": 0.705,
-          "decimal_odds": 1.42,
-          "american_odds": "-238",
+          "price": 0.695,
+          "decimal_odds": 1.44,
+          "american_odds": "-227",
           "best_bid": null,
           "best_ask": null,
           "volume": null
@@ -713,8 +878,8 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 1592.601871,
-      "liquidity": 71511.4314,
+      "total_volume": 6119.593683,
+      "liquidity": 133683.5091,
       "is_active": true,
       "is_closed": false,
       "normalized_title": "titans vs. raiders",
@@ -722,7 +887,7 @@
         "titans",
         "raiders"
       ],
-      "fetched_at": "2025-10-06T04:22:43.065848"
+      "fetched_at": "2025-10-06T14:57:10.284532"
     },
     {
       "platform": "polymarket",
@@ -755,8 +920,8 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 11053.734263,
-      "liquidity": 65207.9301,
+      "total_volume": 24759.121869,
+      "liquidity": 131735.6037,
       "is_active": true,
       "is_closed": false,
       "normalized_title": "bengals vs. packers",
@@ -764,7 +929,7 @@
         "bengals",
         "packers"
       ],
-      "fetched_at": "2025-10-06T04:22:43.065910"
+      "fetched_at": "2025-10-06T14:57:10.284584"
     },
     {
       "platform": "polymarket",
@@ -773,18 +938,18 @@
       "outcomes": [
         {
           "name": "Lions",
-          "price": 0.49,
-          "decimal_odds": 2.04,
-          "american_odds": "+104",
+          "price": 0.51,
+          "decimal_odds": 1.96,
+          "american_odds": "-104",
           "best_bid": null,
           "best_ask": null,
           "volume": null
         },
         {
           "name": "Chiefs",
-          "price": 0.51,
-          "decimal_odds": 1.96,
-          "american_odds": "-104",
+          "price": 0.49,
+          "decimal_odds": 2.04,
+          "american_odds": "+104",
           "best_bid": null,
           "best_ask": null,
           "volume": null
@@ -797,8 +962,8 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 3150.105177,
-      "liquidity": 1510.9588,
+      "total_volume": 7397.485177,
+      "liquidity": 4721.4628,
       "is_active": true,
       "is_closed": false,
       "normalized_title": "lions vs. chiefs",
@@ -806,7 +971,91 @@
         "lions",
         "chiefs"
       ],
-      "fetched_at": "2025-10-06T04:22:43.066035"
+      "fetched_at": "2025-10-06T14:57:10.284697"
+    },
+    {
+      "platform": "polymarket",
+      "market_id": "0x626a49d9b82acaa9e86760c0cddad6a71aceefbef72f4f1c154ff8e358ae88c1",
+      "question": "Bills vs. Falcons",
+      "outcomes": [
+        {
+          "name": "Bills",
+          "price": 0.635,
+          "decimal_odds": 1.57,
+          "american_odds": "-173",
+          "best_bid": null,
+          "best_ask": null,
+          "volume": null
+        },
+        {
+          "name": "Falcons",
+          "price": 0.365,
+          "decimal_odds": 2.74,
+          "american_odds": "+173",
+          "best_bid": null,
+          "best_ask": null,
+          "volume": null
+        }
+      ],
+      "market_type": "sports",
+      "start_time": "2025-10-13T23:15:00+00:00",
+      "end_time": "2025-10-20T23:15:00+00:00",
+      "category": null,
+      "subcategory": null,
+      "sport": null,
+      "league": null,
+      "total_volume": 506.305302,
+      "liquidity": 16308.0584,
+      "is_active": true,
+      "is_closed": false,
+      "normalized_title": "bills vs. falcons",
+      "normalized_teams": [
+        "bills",
+        "falcons"
+      ],
+      "fetched_at": "2025-10-06T14:57:10.284757"
+    },
+    {
+      "platform": "polymarket",
+      "market_id": "0xb4bba8acb4a85c9f4ccd0eec6393e746c0176d271c2d0e52792968a05dd64b0c",
+      "question": "Bears vs. Commanders",
+      "outcomes": [
+        {
+          "name": "Bears",
+          "price": 0.345,
+          "decimal_odds": 2.9,
+          "american_odds": "+189",
+          "best_bid": null,
+          "best_ask": null,
+          "volume": null
+        },
+        {
+          "name": "Commanders",
+          "price": 0.655,
+          "decimal_odds": 1.53,
+          "american_odds": "-189",
+          "best_bid": null,
+          "best_ask": null,
+          "volume": null
+        }
+      ],
+      "market_type": "sports",
+      "start_time": "2025-10-14T00:15:00+00:00",
+      "end_time": "2025-10-21T00:15:00+00:00",
+      "category": null,
+      "subcategory": null,
+      "sport": null,
+      "league": null,
+      "total_volume": 962.363634,
+      "liquidity": 85906.6825,
+      "is_active": true,
+      "is_closed": false,
+      "normalized_title": "bears vs. commanders",
+      "normalized_teams": [
+        "bears",
+        "commanders"
+      ],
+      "fetched_at": "2025-10-06T14:57:10.284810"
     },
     {
       "platform": "kalshi",
@@ -815,12 +1064,12 @@
       "outcomes": [
         {
           "name": "Yes",
-          "price": 0.65,
-          "decimal_odds": 1.54,
-          "american_odds": "-185",
-          "best_bid": 0.65,
+          "price": 0.64,
+          "decimal_odds": 1.56,
+          "american_odds": "-177",
+          "best_bid": 0.64,
           "best_ask": 0.67,
-          "volume": 4359
+          "volume": 6649
         },
         {
           "name": "No",
@@ -828,8 +1077,8 @@
           "decimal_odds": 3.03,
           "american_odds": "+203",
           "best_bid": 0.33,
-          "best_ask": 0.35,
-          "volume": 4359
+          "best_ask": 0.36,
+          "volume": 6649
         }
       ],
       "market_type": "sports",
@@ -839,13 +1088,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 4359,
-      "liquidity": 4011,
+      "total_volume": 6649,
+      "liquidity": 953097.63,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "chicago at washington winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780348"
+      "fetched_at": "2025-10-06T14:57:14.421236"
     },
     {
       "platform": "kalshi",
@@ -854,21 +1103,21 @@
       "outcomes": [
         {
           "name": "Yes",
-          "price": 0.32,
-          "decimal_odds": 3.12,
-          "american_odds": "+212",
-          "best_bid": 0.32,
-          "best_ask": 0.35,
-          "volume": 12011
+          "price": 0.35,
+          "decimal_odds": 2.86,
+          "american_odds": "+185",
+          "best_bid": 0.35,
+          "best_ask": 0.36,
+          "volume": 18478
         },
         {
           "name": "No",
-          "price": 0.65,
-          "decimal_odds": 1.54,
-          "american_odds": "-185",
-          "best_bid": 0.65,
-          "best_ask": 0.68,
-          "volume": 12011
+          "price": 0.64,
+          "decimal_odds": 1.56,
+          "american_odds": "-177",
+          "best_bid": 0.64,
+          "best_ask": 0.65,
+          "volume": 18478
         }
       ],
       "market_type": "sports",
@@ -878,13 +1127,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 12011,
-      "liquidity": 11505,
+      "total_volume": 18478,
+      "liquidity": 956300.95,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "chicago at washington winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780362"
+      "fetched_at": "2025-10-06T14:57:14.421281"
     },
     {
       "platform": "kalshi",
@@ -897,17 +1146,17 @@
           "decimal_odds": 1.56,
           "american_odds": "-177",
           "best_bid": 0.64,
-          "best_ask": 0.68,
-          "volume": 6995
+          "best_ask": 0.66,
+          "volume": 15416
         },
         {
           "name": "No",
-          "price": 0.32,
-          "decimal_odds": 3.12,
-          "american_odds": "+212",
-          "best_bid": 0.32,
+          "price": 0.34,
+          "decimal_odds": 2.94,
+          "american_odds": "+194",
+          "best_bid": 0.34,
           "best_ask": 0.36,
-          "volume": 6995
+          "volume": 15416
         }
       ],
       "market_type": "sports",
@@ -917,13 +1166,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 6995,
-      "liquidity": 6609,
+      "total_volume": 15416,
+      "liquidity": 953627.21,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "buffalo at atlanta winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780371"
+      "fetched_at": "2025-10-06T14:57:14.421308"
     },
     {
       "platform": "kalshi",
@@ -932,21 +1181,21 @@
       "outcomes": [
         {
           "name": "Yes",
-          "price": 0.32,
-          "decimal_odds": 3.12,
-          "american_odds": "+212",
-          "best_bid": 0.32,
-          "best_ask": 0.36,
-          "volume": 2331
+          "price": 0.34,
+          "decimal_odds": 2.94,
+          "american_odds": "+194",
+          "best_bid": 0.34,
+          "best_ask": 0.35,
+          "volume": 4858
         },
         {
           "name": "No",
-          "price": 0.64,
-          "decimal_odds": 1.56,
-          "american_odds": "-177",
-          "best_bid": 0.64,
-          "best_ask": 0.68,
-          "volume": 2331
+          "price": 0.65,
+          "decimal_odds": 1.54,
+          "american_odds": "-185",
+          "best_bid": 0.65,
+          "best_ask": 0.66,
+          "volume": 4858
         }
       ],
       "market_type": "sports",
@@ -956,13 +1205,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 2331,
-      "liquidity": 2107,
+      "total_volume": 4858,
+      "liquidity": 948586.65,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "buffalo at atlanta winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780378"
+      "fetched_at": "2025-10-06T14:57:14.421328"
     },
     {
       "platform": "kalshi",
@@ -971,21 +1220,21 @@
       "outcomes": [
         {
           "name": "Yes",
+          "price": 0.5,
+          "decimal_odds": 2.0,
+          "american_odds": "+100",
+          "best_bid": 0.5,
+          "best_ask": 0.51,
+          "volume": 11424
+        },
+        {
+          "name": "No",
           "price": 0.49,
           "decimal_odds": 2.04,
           "american_odds": "+104",
           "best_bid": 0.49,
-          "best_ask": 0.53,
-          "volume": 10515
-        },
-        {
-          "name": "No",
-          "price": 0.47,
-          "decimal_odds": 2.13,
-          "american_odds": "+112",
-          "best_bid": 0.47,
-          "best_ask": 0.51,
-          "volume": 10515
+          "best_ask": 0.5,
+          "volume": 11424
         }
       ],
       "market_type": "sports",
@@ -995,13 +1244,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 10515,
-      "liquidity": 9222,
+      "total_volume": 11424,
+      "liquidity": 1147883.29,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "detroit at kansas city winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780385"
+      "fetched_at": "2025-10-06T14:57:14.421349"
     },
     {
       "platform": "kalshi",
@@ -1010,21 +1259,21 @@
       "outcomes": [
         {
           "name": "Yes",
-          "price": 0.49,
-          "decimal_odds": 2.04,
-          "american_odds": "+104",
-          "best_bid": 0.49,
-          "best_ask": 0.5,
-          "volume": 20521
+          "price": 0.51,
+          "decimal_odds": 1.96,
+          "american_odds": "-104",
+          "best_bid": 0.51,
+          "best_ask": 0.52,
+          "volume": 38987
         },
         {
           "name": "No",
-          "price": 0.5,
-          "decimal_odds": 2.0,
-          "american_odds": "+100",
-          "best_bid": 0.5,
-          "best_ask": 0.51,
-          "volume": 20521
+          "price": 0.48,
+          "decimal_odds": 2.08,
+          "american_odds": "+108",
+          "best_bid": 0.48,
+          "best_ask": 0.49,
+          "volume": 38987
         }
       ],
       "market_type": "sports",
@@ -1034,13 +1283,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 20521,
-      "liquidity": 20075,
+      "total_volume": 38987,
+      "liquidity": 1225491.25,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "detroit at kansas city winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780391"
+      "fetched_at": "2025-10-06T14:57:14.421368"
     },
     {
       "platform": "kalshi",
@@ -1049,12 +1298,12 @@
       "outcomes": [
         {
           "name": "Yes",
-          "price": 0.87,
-          "decimal_odds": 1.15,
-          "american_odds": "-669",
-          "best_bid": 0.87,
+          "price": 0.88,
+          "decimal_odds": 1.14,
+          "american_odds": "-733",
+          "best_bid": 0.88,
           "best_ask": 0.89,
-          "volume": 10983
+          "volume": 12629
         },
         {
           "name": "No",
@@ -1062,8 +1311,8 @@
           "decimal_odds": 9.09,
           "american_odds": "+809",
           "best_bid": 0.11,
-          "best_ask": 0.13,
-          "volume": 10983
+          "best_ask": 0.12,
+          "volume": 12629
         }
       ],
       "market_type": "sports",
@@ -1073,13 +1322,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 10983,
-      "liquidity": 10225,
+      "total_volume": 12629,
+      "liquidity": 1027998.21,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "cincinnati at green bay winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780398"
+      "fetched_at": "2025-10-06T14:57:14.421387"
     },
     {
       "platform": "kalshi",
@@ -1092,17 +1341,17 @@
           "decimal_odds": 9.09,
           "american_odds": "+809",
           "best_bid": 0.11,
-          "best_ask": 0.13,
-          "volume": 33539
+          "best_ask": 0.12,
+          "volume": 74040
         },
         {
           "name": "No",
-          "price": 0.87,
-          "decimal_odds": 1.15,
-          "american_odds": "-669",
-          "best_bid": 0.87,
+          "price": 0.88,
+          "decimal_odds": 1.14,
+          "american_odds": "-733",
+          "best_bid": 0.88,
           "best_ask": 0.89,
-          "volume": 33539
+          "volume": 74040
         }
       ],
       "market_type": "sports",
@@ -1112,13 +1361,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 33539,
-      "liquidity": 33082,
+      "total_volume": 74040,
+      "liquidity": 1031584.55,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "cincinnati at green bay winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780415"
+      "fetched_at": "2025-10-06T14:57:14.421405"
     },
     {
       "platform": "kalshi",
@@ -1127,21 +1376,21 @@
       "outcomes": [
         {
           "name": "Yes",
-          "price": 0.38,
-          "decimal_odds": 2.63,
-          "american_odds": "+163",
-          "best_bid": 0.38,
-          "best_ask": 0.68,
-          "volume": 6719
+          "price": 0.59,
+          "decimal_odds": 1.69,
+          "american_odds": "-143",
+          "best_bid": 0.59,
+          "best_ask": 0.6,
+          "volume": 8953
         },
         {
           "name": "No",
-          "price": 0.32,
-          "decimal_odds": 3.12,
-          "american_odds": "+212",
-          "best_bid": 0.32,
-          "best_ask": 0.62,
-          "volume": 6719
+          "price": 0.4,
+          "decimal_odds": 2.5,
+          "american_odds": "+150",
+          "best_bid": 0.4,
+          "best_ask": 0.41,
+          "volume": 8953
         }
       ],
       "market_type": "sports",
@@ -1151,13 +1400,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 6719,
-      "liquidity": 5955,
+      "total_volume": 8953,
+      "liquidity": 1266214.51,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "san francisco at tampa bay winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780424"
+      "fetched_at": "2025-10-06T14:57:14.421422"
     },
     {
       "platform": "kalshi",
@@ -1166,21 +1415,21 @@
       "outcomes": [
         {
           "name": "Yes",
-          "price": 0.31,
-          "decimal_odds": 3.23,
-          "american_odds": "+222",
-          "best_bid": 0.31,
-          "best_ask": 0.64,
-          "volume": 1219
+          "price": 0.4,
+          "decimal_odds": 2.5,
+          "american_odds": "+150",
+          "best_bid": 0.4,
+          "best_ask": 0.41,
+          "volume": 8563
         },
         {
           "name": "No",
-          "price": 0.36,
-          "decimal_odds": 2.78,
-          "american_odds": "+177",
-          "best_bid": 0.36,
-          "best_ask": 0.69,
-          "volume": 1219
+          "price": 0.59,
+          "decimal_odds": 1.69,
+          "american_odds": "-143",
+          "best_bid": 0.59,
+          "best_ask": 0.6,
+          "volume": 8563
         }
       ],
       "market_type": "sports",
@@ -1190,13 +1439,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 1219,
-      "liquidity": 1095,
+      "total_volume": 8563,
+      "liquidity": 1252717.61,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "san francisco at tampa bay winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780430"
+      "fetched_at": "2025-10-06T14:57:14.421439"
     },
     {
       "platform": "kalshi",
@@ -1205,12 +1454,12 @@
       "outcomes": [
         {
           "name": "Yes",
-          "price": 0.29,
-          "decimal_odds": 3.45,
-          "american_odds": "+244",
-          "best_bid": 0.29,
+          "price": 0.31,
+          "decimal_odds": 3.23,
+          "american_odds": "+222",
+          "best_bid": 0.31,
           "best_ask": 0.32,
-          "volume": 16297
+          "volume": 23006
         },
         {
           "name": "No",
@@ -1218,8 +1467,8 @@
           "decimal_odds": 1.47,
           "american_odds": "-212",
           "best_bid": 0.68,
-          "best_ask": 0.71,
-          "volume": 16297
+          "best_ask": 0.69,
+          "volume": 23006
         }
       ],
       "market_type": "sports",
@@ -1229,13 +1478,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 16297,
-      "liquidity": 15417,
+      "total_volume": 23006,
+      "liquidity": 1235115.48,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "tennessee at las vegas winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780437"
+      "fetched_at": "2025-10-06T14:57:14.421456"
     },
     {
       "platform": "kalshi",
@@ -1244,21 +1493,21 @@
       "outcomes": [
         {
           "name": "Yes",
-          "price": 0.7,
-          "decimal_odds": 1.43,
-          "american_odds": "-233",
-          "best_bid": 0.7,
-          "best_ask": 0.71,
-          "volume": 1287
+          "price": 0.68,
+          "decimal_odds": 1.47,
+          "american_odds": "-212",
+          "best_bid": 0.68,
+          "best_ask": 0.69,
+          "volume": 2471
         },
         {
           "name": "No",
-          "price": 0.29,
-          "decimal_odds": 3.45,
-          "american_odds": "+244",
-          "best_bid": 0.29,
-          "best_ask": 0.3,
-          "volume": 1287
+          "price": 0.31,
+          "decimal_odds": 3.23,
+          "american_odds": "+222",
+          "best_bid": 0.31,
+          "best_ask": 0.32,
+          "volume": 2471
         }
       ],
       "market_type": "sports",
@@ -1268,13 +1517,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 1287,
-      "liquidity": 808,
+      "total_volume": 2471,
+      "liquidity": 1237093.49,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "tennessee at las vegas winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780443"
+      "fetched_at": "2025-10-06T14:57:14.421473"
     },
     {
       "platform": "kalshi",
@@ -1287,17 +1536,17 @@
           "decimal_odds": 1.59,
           "american_odds": "-170",
           "best_bid": 0.63,
-          "best_ask": 0.65,
-          "volume": 12290
+          "best_ask": 0.64,
+          "volume": 29410
         },
         {
           "name": "No",
-          "price": 0.35,
-          "decimal_odds": 2.86,
-          "american_odds": "+185",
-          "best_bid": 0.35,
+          "price": 0.36,
+          "decimal_odds": 2.78,
+          "american_odds": "+177",
+          "best_bid": 0.36,
           "best_ask": 0.37,
-          "volume": 12290
+          "volume": 29410
         }
       ],
       "market_type": "sports",
@@ -1307,13 +1556,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 12290,
-      "liquidity": 12188,
+      "total_volume": 29410,
+      "liquidity": 1223486.86,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "dallas at carolina winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780450"
+      "fetched_at": "2025-10-06T14:57:14.421492"
     },
     {
       "platform": "kalshi",
@@ -1322,12 +1571,12 @@
       "outcomes": [
         {
           "name": "Yes",
-          "price": 0.33,
-          "decimal_odds": 3.03,
-          "american_odds": "+203",
-          "best_bid": 0.33,
+          "price": 0.36,
+          "decimal_odds": 2.78,
+          "american_odds": "+177",
+          "best_bid": 0.36,
           "best_ask": 0.37,
-          "volume": 4641
+          "volume": 8019
         },
         {
           "name": "No",
@@ -1335,8 +1584,8 @@
           "decimal_odds": 1.59,
           "american_odds": "-170",
           "best_bid": 0.63,
-          "best_ask": 0.67,
-          "volume": 4641
+          "best_ask": 0.64,
+          "volume": 8019
         }
       ],
       "market_type": "sports",
@@ -1346,13 +1595,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 4641,
-      "liquidity": 4574,
+      "total_volume": 8019,
+      "liquidity": 1220832.35,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "dallas at carolina winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780455"
+      "fetched_at": "2025-10-06T14:57:14.421509"
     },
     {
       "platform": "kalshi",
@@ -1365,17 +1614,17 @@
           "decimal_odds": 3.33,
           "american_odds": "+233",
           "best_bid": 0.3,
-          "best_ask": 0.33,
-          "volume": 8740
+          "best_ask": 0.31,
+          "volume": 18926
         },
         {
           "name": "No",
-          "price": 0.67,
-          "decimal_odds": 1.49,
-          "american_odds": "-203",
-          "best_bid": 0.67,
+          "price": 0.69,
+          "decimal_odds": 1.45,
+          "american_odds": "-222",
+          "best_bid": 0.69,
           "best_ask": 0.7,
-          "volume": 8740
+          "volume": 18926
         }
       ],
       "market_type": "sports",
@@ -1385,13 +1634,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 8740,
-      "liquidity": 8526,
+      "total_volume": 18926,
+      "liquidity": 1179768.88,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "los angeles c at miami winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780461"
+      "fetched_at": "2025-10-06T14:57:14.421527"
     },
     {
       "platform": "kalshi",
@@ -1400,21 +1649,21 @@
       "outcomes": [
         {
           "name": "Yes",
-          "price": 0.67,
-          "decimal_odds": 1.49,
-          "american_odds": "-203",
-          "best_bid": 0.67,
-          "best_ask": 0.69,
-          "volume": 4137
+          "price": 0.69,
+          "decimal_odds": 1.45,
+          "american_odds": "-222",
+          "best_bid": 0.69,
+          "best_ask": 0.7,
+          "volume": 6542
         },
         {
           "name": "No",
-          "price": 0.31,
-          "decimal_odds": 3.23,
-          "american_odds": "+222",
-          "best_bid": 0.31,
-          "best_ask": 0.33,
-          "volume": 4137
+          "price": 0.3,
+          "decimal_odds": 3.33,
+          "american_odds": "+233",
+          "best_bid": 0.3,
+          "best_ask": 0.31,
+          "volume": 6542
         }
       ],
       "market_type": "sports",
@@ -1424,13 +1673,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 4137,
-      "liquidity": 3977,
+      "total_volume": 6542,
+      "liquidity": 1178301.91,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "los angeles c at miami winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780467"
+      "fetched_at": "2025-10-06T14:57:14.421544"
     },
     {
       "platform": "kalshi",
@@ -1439,21 +1688,21 @@
       "outcomes": [
         {
           "name": "Yes",
-          "price": 0.5,
-          "decimal_odds": 2.0,
-          "american_odds": "+100",
-          "best_bid": 0.5,
-          "best_ask": 0.53,
-          "volume": 18216
+          "price": 0.53,
+          "decimal_odds": 1.89,
+          "american_odds": "-112",
+          "best_bid": 0.53,
+          "best_ask": 0.54,
+          "volume": 42466
         },
         {
           "name": "No",
-          "price": 0.47,
-          "decimal_odds": 2.13,
-          "american_odds": "+112",
-          "best_bid": 0.47,
-          "best_ask": 0.5,
-          "volume": 18216
+          "price": 0.46,
+          "decimal_odds": 2.17,
+          "american_odds": "+117",
+          "best_bid": 0.46,
+          "best_ask": 0.47,
+          "volume": 42466
         }
       ],
       "market_type": "sports",
@@ -1463,13 +1712,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 18216,
-      "liquidity": 16095,
+      "total_volume": 42466,
+      "liquidity": 1197673.03,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "seattle at jacksonville winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780473"
+      "fetched_at": "2025-10-06T14:57:14.421562"
     },
     {
       "platform": "kalshi",
@@ -1482,17 +1731,17 @@
           "decimal_odds": 2.13,
           "american_odds": "+112",
           "best_bid": 0.47,
-          "best_ask": 0.5,
-          "volume": 1665
+          "best_ask": 0.49,
+          "volume": 7295
         },
         {
           "name": "No",
-          "price": 0.5,
-          "decimal_odds": 2.0,
-          "american_odds": "+100",
-          "best_bid": 0.5,
+          "price": 0.51,
+          "decimal_odds": 1.96,
+          "american_odds": "-104",
+          "best_bid": 0.51,
           "best_ask": 0.53,
-          "volume": 1665
+          "volume": 7295
         }
       ],
       "market_type": "sports",
@@ -1502,13 +1751,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 1665,
-      "liquidity": 1423,
+      "total_volume": 7295,
+      "liquidity": 1157582.91,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "seattle at jacksonville winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780479"
+      "fetched_at": "2025-10-06T14:57:14.421579"
     },
     {
       "platform": "kalshi",
@@ -1517,21 +1766,21 @@
       "outcomes": [
         {
           "name": "Yes",
-          "price": 0.68,
-          "decimal_odds": 1.47,
-          "american_odds": "-212",
-          "best_bid": 0.68,
-          "best_ask": 0.7,
-          "volume": 5272
+          "price": 0.67,
+          "decimal_odds": 1.49,
+          "american_odds": "-203",
+          "best_bid": 0.67,
+          "best_ask": 0.68,
+          "volume": 7904
         },
         {
           "name": "No",
-          "price": 0.3,
-          "decimal_odds": 3.33,
-          "american_odds": "+233",
-          "best_bid": 0.3,
-          "best_ask": 0.32,
-          "volume": 5272
+          "price": 0.32,
+          "decimal_odds": 3.12,
+          "american_odds": "+212",
+          "best_bid": 0.32,
+          "best_ask": 0.33,
+          "volume": 7904
         }
       ],
       "market_type": "sports",
@@ -1541,13 +1790,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 5272,
-      "liquidity": 4705,
+      "total_volume": 7904,
+      "liquidity": 1186475.6,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "cleveland at pittsburgh winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780485"
+      "fetched_at": "2025-10-06T14:57:14.421597"
     },
     {
       "platform": "kalshi",
@@ -1556,21 +1805,21 @@
       "outcomes": [
         {
           "name": "Yes",
-          "price": 0.31,
-          "decimal_odds": 3.23,
-          "american_odds": "+222",
-          "best_bid": 0.31,
-          "best_ask": 0.32,
-          "volume": 6280
+          "price": 0.32,
+          "decimal_odds": 3.12,
+          "american_odds": "+212",
+          "best_bid": 0.32,
+          "best_ask": 0.33,
+          "volume": 12220
         },
         {
           "name": "No",
-          "price": 0.68,
-          "decimal_odds": 1.47,
-          "american_odds": "-212",
-          "best_bid": 0.68,
-          "best_ask": 0.69,
-          "volume": 6280
+          "price": 0.67,
+          "decimal_odds": 1.49,
+          "american_odds": "-203",
+          "best_bid": 0.67,
+          "best_ask": 0.68,
+          "volume": 12220
         }
       ],
       "market_type": "sports",
@@ -1580,13 +1829,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 6280,
-      "liquidity": 6178,
+      "total_volume": 12220,
+      "liquidity": 1187265.16,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "cleveland at pittsburgh winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780491"
+      "fetched_at": "2025-10-06T14:57:14.421615"
     },
     {
       "platform": "kalshi",
@@ -1595,21 +1844,21 @@
       "outcomes": [
         {
           "name": "Yes",
-          "price": 0.76,
-          "decimal_odds": 1.32,
-          "american_odds": "-316",
-          "best_bid": 0.76,
-          "best_ask": 0.8,
-          "volume": 4768
+          "price": 0.77,
+          "decimal_odds": 1.3,
+          "american_odds": "-334",
+          "best_bid": 0.77,
+          "best_ask": 0.78,
+          "volume": 6122
         },
         {
           "name": "No",
-          "price": 0.2,
-          "decimal_odds": 5.0,
-          "american_odds": "+400",
-          "best_bid": 0.2,
-          "best_ask": 0.24,
-          "volume": 4768
+          "price": 0.22,
+          "decimal_odds": 4.55,
+          "american_odds": "+354",
+          "best_bid": 0.22,
+          "best_ask": 0.23,
+          "volume": 6122
         }
       ],
       "market_type": "sports",
@@ -1619,13 +1868,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 4768,
-      "liquidity": 4584,
+      "total_volume": 6122,
+      "liquidity": 1205471.24,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "los angeles r at baltimore winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780496"
+      "fetched_at": "2025-10-06T14:57:14.421633"
     },
     {
       "platform": "kalshi",
@@ -1634,21 +1883,21 @@
       "outcomes": [
         {
           "name": "Yes",
-          "price": 0.24,
-          "decimal_odds": 4.17,
-          "american_odds": "+316",
-          "best_bid": 0.24,
-          "best_ask": 0.25,
-          "volume": 8399
+          "price": 0.22,
+          "decimal_odds": 4.55,
+          "american_odds": "+354",
+          "best_bid": 0.22,
+          "best_ask": 0.23,
+          "volume": 18762
         },
         {
           "name": "No",
-          "price": 0.75,
-          "decimal_odds": 1.33,
-          "american_odds": "-300",
-          "best_bid": 0.75,
-          "best_ask": 0.76,
-          "volume": 8399
+          "price": 0.77,
+          "decimal_odds": 1.3,
+          "american_odds": "-334",
+          "best_bid": 0.77,
+          "best_ask": 0.78,
+          "volume": 18762
         }
       ],
       "market_type": "sports",
@@ -1658,13 +1907,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 8399,
-      "liquidity": 7408,
+      "total_volume": 18762,
+      "liquidity": 1202172.89,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "los angeles r at baltimore winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780502"
+      "fetched_at": "2025-10-06T14:57:14.421649"
     },
     {
       "platform": "kalshi",
@@ -1673,21 +1922,21 @@
       "outcomes": [
         {
           "name": "Yes",
-          "price": 0.35,
-          "decimal_odds": 2.86,
-          "american_odds": "+185",
-          "best_bid": 0.35,
-          "best_ask": 0.38,
-          "volume": 1537
+          "price": 0.37,
+          "decimal_odds": 2.7,
+          "american_odds": "+170",
+          "best_bid": 0.37,
+          "best_ask": 0.39,
+          "volume": 49084
         },
         {
           "name": "No",
-          "price": 0.62,
-          "decimal_odds": 1.61,
-          "american_odds": "-163",
-          "best_bid": 0.62,
-          "best_ask": 0.65,
-          "volume": 1537
+          "price": 0.61,
+          "decimal_odds": 1.64,
+          "american_odds": "-156",
+          "best_bid": 0.61,
+          "best_ask": 0.63,
+          "volume": 49084
         }
       ],
       "market_type": "sports",
@@ -1697,13 +1946,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 1537,
-      "liquidity": 1016,
+      "total_volume": 49084,
+      "liquidity": 1220506.51,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "new england at new orleans winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780508"
+      "fetched_at": "2025-10-06T14:57:14.421669"
     },
     {
       "platform": "kalshi",
@@ -1712,21 +1961,21 @@
       "outcomes": [
         {
           "name": "Yes",
-          "price": 0.62,
-          "decimal_odds": 1.61,
-          "american_odds": "-163",
-          "best_bid": 0.62,
-          "best_ask": 0.65,
-          "volume": 3632
+          "price": 0.63,
+          "decimal_odds": 1.59,
+          "american_odds": "-170",
+          "best_bid": 0.63,
+          "best_ask": 0.64,
+          "volume": 15909
         },
         {
           "name": "No",
-          "price": 0.35,
-          "decimal_odds": 2.86,
-          "american_odds": "+185",
-          "best_bid": 0.35,
-          "best_ask": 0.38,
-          "volume": 3632
+          "price": 0.36,
+          "decimal_odds": 2.78,
+          "american_odds": "+177",
+          "best_bid": 0.36,
+          "best_ask": 0.37,
+          "volume": 15909
         }
       ],
       "market_type": "sports",
@@ -1736,13 +1985,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 3632,
-      "liquidity": 3459,
+      "total_volume": 15909,
+      "liquidity": 1264555.75,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "new england at new orleans winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780513"
+      "fetched_at": "2025-10-06T14:57:14.421686"
     },
     {
       "platform": "kalshi",
@@ -1751,21 +2000,21 @@
       "outcomes": [
         {
           "name": "Yes",
-          "price": 0.69,
-          "decimal_odds": 1.45,
-          "american_odds": "-222",
-          "best_bid": 0.69,
-          "best_ask": 0.73,
-          "volume": 13249
+          "price": 0.7,
+          "decimal_odds": 1.43,
+          "american_odds": "-233",
+          "best_bid": 0.7,
+          "best_ask": 0.71,
+          "volume": 16501
         },
         {
           "name": "No",
-          "price": 0.27,
-          "decimal_odds": 3.7,
-          "american_odds": "+270",
-          "best_bid": 0.27,
-          "best_ask": 0.31,
-          "volume": 13249
+          "price": 0.29,
+          "decimal_odds": 3.45,
+          "american_odds": "+244",
+          "best_bid": 0.29,
+          "best_ask": 0.3,
+          "volume": 16501
         }
       ],
       "market_type": "sports",
@@ -1775,13 +2024,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 13249,
-      "liquidity": 12768,
+      "total_volume": 16501,
+      "liquidity": 1186479.25,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "arizona at indianapolis winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780522"
+      "fetched_at": "2025-10-06T14:57:14.421703"
     },
     {
       "platform": "kalshi",
@@ -1790,21 +2039,21 @@
       "outcomes": [
         {
           "name": "Yes",
-          "price": 0.27,
-          "decimal_odds": 3.7,
-          "american_odds": "+270",
-          "best_bid": 0.27,
-          "best_ask": 0.31,
-          "volume": 2033
+          "price": 0.29,
+          "decimal_odds": 3.45,
+          "american_odds": "+244",
+          "best_bid": 0.29,
+          "best_ask": 0.3,
+          "volume": 4762
         },
         {
           "name": "No",
-          "price": 0.69,
-          "decimal_odds": 1.45,
-          "american_odds": "-222",
-          "best_bid": 0.69,
-          "best_ask": 0.73,
-          "volume": 2033
+          "price": 0.7,
+          "decimal_odds": 1.43,
+          "american_odds": "-233",
+          "best_bid": 0.7,
+          "best_ask": 0.71,
+          "volume": 4762
         }
       ],
       "market_type": "sports",
@@ -1814,13 +2063,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 2033,
-      "liquidity": 1795,
+      "total_volume": 4762,
+      "liquidity": 1186991.18,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "arizona at indianapolis winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780528"
+      "fetched_at": "2025-10-06T14:57:14.421721"
     },
     {
       "platform": "kalshi",
@@ -1829,21 +2078,21 @@
       "outcomes": [
         {
           "name": "Yes",
-          "price": 0.23,
-          "decimal_odds": 4.35,
-          "american_odds": "+334",
-          "best_bid": 0.23,
-          "best_ask": 0.24,
-          "volume": 32573
+          "price": 0.22,
+          "decimal_odds": 4.55,
+          "american_odds": "+354",
+          "best_bid": 0.22,
+          "best_ask": 0.23,
+          "volume": 38929
         },
         {
           "name": "No",
-          "price": 0.76,
-          "decimal_odds": 1.32,
-          "american_odds": "-316",
-          "best_bid": 0.76,
-          "best_ask": 0.77,
-          "volume": 32573
+          "price": 0.77,
+          "decimal_odds": 1.3,
+          "american_odds": "-334",
+          "best_bid": 0.77,
+          "best_ask": 0.78,
+          "volume": 38929
         }
       ],
       "market_type": "sports",
@@ -1853,13 +2102,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 32573,
-      "liquidity": 32170,
+      "total_volume": 38929,
+      "liquidity": 1198501.44,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "denver at new york j winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780534"
+      "fetched_at": "2025-10-06T14:57:14.421740"
     },
     {
       "platform": "kalshi",
@@ -1868,21 +2117,21 @@
       "outcomes": [
         {
           "name": "Yes",
-          "price": 0.75,
-          "decimal_odds": 1.33,
-          "american_odds": "-300",
-          "best_bid": 0.75,
-          "best_ask": 0.76,
-          "volume": 18876
+          "price": 0.77,
+          "decimal_odds": 1.3,
+          "american_odds": "-334",
+          "best_bid": 0.77,
+          "best_ask": 0.78,
+          "volume": 23409
         },
         {
           "name": "No",
-          "price": 0.24,
-          "decimal_odds": 4.17,
-          "american_odds": "+316",
-          "best_bid": 0.24,
-          "best_ask": 0.25,
-          "volume": 18876
+          "price": 0.22,
+          "decimal_odds": 4.55,
+          "american_odds": "+354",
+          "best_bid": 0.22,
+          "best_ask": 0.23,
+          "volume": 23409
         }
       ],
       "market_type": "sports",
@@ -1892,13 +2141,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 18876,
-      "liquidity": 17202,
+      "total_volume": 23409,
+      "liquidity": 1202774.97,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "denver at new york j winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780539"
+      "fetched_at": "2025-10-06T14:57:14.421757"
     },
     {
       "platform": "kalshi",
@@ -1907,21 +2156,21 @@
       "outcomes": [
         {
           "name": "Yes",
-          "price": 0.76,
-          "decimal_odds": 1.32,
-          "american_odds": "-316",
-          "best_bid": 0.76,
-          "best_ask": 0.77,
-          "volume": 68966
+          "price": 0.77,
+          "decimal_odds": 1.3,
+          "american_odds": "-334",
+          "best_bid": 0.77,
+          "best_ask": 0.78,
+          "volume": 99483
         },
         {
           "name": "No",
-          "price": 0.23,
-          "decimal_odds": 4.35,
-          "american_odds": "+334",
-          "best_bid": 0.23,
-          "best_ask": 0.24,
-          "volume": 68966
+          "price": 0.22,
+          "decimal_odds": 4.55,
+          "american_odds": "+354",
+          "best_bid": 0.22,
+          "best_ask": 0.23,
+          "volume": 99483
         }
       ],
       "market_type": "sports",
@@ -1931,13 +2180,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 68966,
-      "liquidity": 66861,
+      "total_volume": 99483,
+      "liquidity": 1733957.94,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "philadelphia at new york g winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780545"
+      "fetched_at": "2025-10-06T14:57:14.421774"
     },
     {
       "platform": "kalshi",
@@ -1946,21 +2195,21 @@
       "outcomes": [
         {
           "name": "Yes",
-          "price": 0.23,
-          "decimal_odds": 4.35,
-          "american_odds": "+334",
-          "best_bid": 0.23,
-          "best_ask": 0.24,
-          "volume": 22910
+          "price": 0.22,
+          "decimal_odds": 4.55,
+          "american_odds": "+354",
+          "best_bid": 0.22,
+          "best_ask": 0.23,
+          "volume": 40070
         },
         {
           "name": "No",
-          "price": 0.76,
-          "decimal_odds": 1.32,
-          "american_odds": "-316",
-          "best_bid": 0.76,
-          "best_ask": 0.77,
-          "volume": 22910
+          "price": 0.77,
+          "decimal_odds": 1.3,
+          "american_odds": "-334",
+          "best_bid": 0.77,
+          "best_ask": 0.78,
+          "volume": 40070
         }
       ],
       "market_type": "sports",
@@ -1970,13 +2219,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 22910,
-      "liquidity": 16986,
+      "total_volume": 40070,
+      "liquidity": 1521840.55,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "philadelphia at new york g winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780550"
+      "fetched_at": "2025-10-06T14:57:14.421791"
     },
     {
       "platform": "kalshi",
@@ -1990,7 +2239,7 @@
           "american_odds": "-177",
           "best_bid": 0.64,
           "best_ask": 0.65,
-          "volume": 2036957
+          "volume": 2938067
         },
         {
           "name": "No",
@@ -1999,7 +2248,7 @@
           "american_odds": "+185",
           "best_bid": 0.35,
           "best_ask": 0.36,
-          "volume": 2036957
+          "volume": 2938067
         }
       ],
       "market_type": "sports",
@@ -2009,13 +2258,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 2036957,
-      "liquidity": 1708672,
+      "total_volume": 2938067,
+      "liquidity": 5261223.16,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "kansas city at jacksonville winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780556"
+      "fetched_at": "2025-10-06T14:57:14.421809"
     },
     {
       "platform": "kalshi",
@@ -2029,7 +2278,7 @@
           "american_odds": "+177",
           "best_bid": 0.36,
           "best_ask": 0.37,
-          "volume": 935677
+          "volume": 1577385
         },
         {
           "name": "No",
@@ -2038,7 +2287,7 @@
           "american_odds": "-170",
           "best_bid": 0.63,
           "best_ask": 0.64,
-          "volume": 935677
+          "volume": 1577385
         }
       ],
       "market_type": "sports",
@@ -2048,13 +2297,13 @@
       "subcategory": null,
       "sport": null,
       "league": null,
-      "total_volume": 935677,
-      "liquidity": 765790,
+      "total_volume": 1577385,
+      "liquidity": 4151763.83,
       "is_active": false,
       "is_closed": false,
       "normalized_title": "kansas city at jacksonville winner",
       "normalized_teams": [],
-      "fetched_at": "2025-10-06T04:22:44.780562"
+      "fetched_at": "2025-10-06T14:57:14.421826"
     }
   ],
   "comparisons": [
@@ -2092,8 +2341,8 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 192368.135373,
-          "liquidity": 519225.7556,
+          "total_volume": 456816.164564,
+          "liquidity": 793707.3629,
           "is_active": true,
           "is_closed": false,
           "normalized_title": "chiefs vs. jaguars",
@@ -2101,7 +2350,7 @@
             "chiefs",
             "jaguars"
           ],
-          "fetched_at": "2025-10-06T04:22:43.062476"
+          "fetched_at": "2025-10-06T14:57:10.281849"
         },
         {
           "platform": "kalshi",
@@ -2115,7 +2364,7 @@
               "american_odds": "-177",
               "best_bid": 0.64,
               "best_ask": 0.65,
-              "volume": 2036957
+              "volume": 2938067
             },
             {
               "name": "No",
@@ -2124,7 +2373,7 @@
               "american_odds": "+185",
               "best_bid": 0.35,
               "best_ask": 0.36,
-              "volume": 2036957
+              "volume": 2938067
             }
           ],
           "market_type": "sports",
@@ -2134,13 +2383,13 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 2036957,
-          "liquidity": 1708672,
+          "total_volume": 2938067,
+          "liquidity": 5261223.16,
           "is_active": false,
           "is_closed": false,
           "normalized_title": "kansas city at jacksonville winner",
           "normalized_teams": [],
-          "fetched_at": "2025-10-06T04:22:44.780556"
+          "fetched_at": "2025-10-06T14:57:14.421809"
         },
         {
           "platform": "kalshi",
@@ -2154,7 +2403,7 @@
               "american_odds": "+177",
               "best_bid": 0.36,
               "best_ask": 0.37,
-              "volume": 935677
+              "volume": 1577385
             },
             {
               "name": "No",
@@ -2163,7 +2412,7 @@
               "american_odds": "-170",
               "best_bid": 0.63,
               "best_ask": 0.64,
-              "volume": 935677
+              "volume": 1577385
             }
           ],
           "market_type": "sports",
@@ -2173,13 +2422,13 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 935677,
-          "liquidity": 765790,
+          "total_volume": 1577385,
+          "liquidity": 4151763.83,
           "is_active": false,
           "is_closed": false,
           "normalized_title": "kansas city at jacksonville winner",
           "normalized_teams": [],
-          "fetched_at": "2025-10-06T04:22:44.780562"
+          "fetched_at": "2025-10-06T14:57:14.421826"
         }
       ],
       "best_platform": "polymarket",
@@ -2192,7 +2441,7 @@
       "price_deltas": {},
       "market_type": "sports",
       "normalized_title": "chiefs vs. jaguars",
-      "last_updated": "2025-10-06T04:22:44.791514"
+      "last_updated": "2025-10-06T14:57:15.719297"
     },
     {
       "question": "Eagles vs. Giants",
@@ -2204,18 +2453,18 @@
           "outcomes": [
             {
               "name": "Eagles",
-              "price": 0.765,
-              "decimal_odds": 1.31,
-              "american_odds": "-325",
+              "price": 0.78,
+              "decimal_odds": 1.28,
+              "american_odds": "-354",
               "best_bid": null,
               "best_ask": null,
               "volume": null
             },
             {
               "name": "Giants",
-              "price": 0.235,
-              "decimal_odds": 4.26,
-              "american_odds": "+325",
+              "price": 0.22,
+              "decimal_odds": 4.55,
+              "american_odds": "+354",
               "best_bid": null,
               "best_ask": null,
               "volume": null
@@ -2228,8 +2477,8 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 7081.01794,
-          "liquidity": 76162.4501,
+          "total_volume": 18565.424706,
+          "liquidity": 95757.8248,
           "is_active": true,
           "is_closed": false,
           "normalized_title": "eagles vs. giants",
@@ -2237,7 +2486,7 @@
             "eagles",
             "giants"
           ],
-          "fetched_at": "2025-10-06T04:22:43.065257"
+          "fetched_at": "2025-10-06T14:57:10.283926"
         },
         {
           "platform": "kalshi",
@@ -2246,21 +2495,21 @@
           "outcomes": [
             {
               "name": "Yes",
-              "price": 0.76,
-              "decimal_odds": 1.32,
-              "american_odds": "-316",
-              "best_bid": 0.76,
-              "best_ask": 0.77,
-              "volume": 68966
+              "price": 0.77,
+              "decimal_odds": 1.3,
+              "american_odds": "-334",
+              "best_bid": 0.77,
+              "best_ask": 0.78,
+              "volume": 99483
             },
             {
               "name": "No",
-              "price": 0.23,
-              "decimal_odds": 4.35,
-              "american_odds": "+334",
-              "best_bid": 0.23,
-              "best_ask": 0.24,
-              "volume": 68966
+              "price": 0.22,
+              "decimal_odds": 4.55,
+              "american_odds": "+354",
+              "best_bid": 0.22,
+              "best_ask": 0.23,
+              "volume": 99483
             }
           ],
           "market_type": "sports",
@@ -2270,13 +2519,13 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 68966,
-          "liquidity": 66861,
+          "total_volume": 99483,
+          "liquidity": 1733957.94,
           "is_active": false,
           "is_closed": false,
           "normalized_title": "philadelphia at new york g winner",
           "normalized_teams": [],
-          "fetched_at": "2025-10-06T04:22:44.780545"
+          "fetched_at": "2025-10-06T14:57:14.421774"
         },
         {
           "platform": "kalshi",
@@ -2285,21 +2534,21 @@
           "outcomes": [
             {
               "name": "Yes",
-              "price": 0.23,
-              "decimal_odds": 4.35,
-              "american_odds": "+334",
-              "best_bid": 0.23,
-              "best_ask": 0.24,
-              "volume": 22910
+              "price": 0.22,
+              "decimal_odds": 4.55,
+              "american_odds": "+354",
+              "best_bid": 0.22,
+              "best_ask": 0.23,
+              "volume": 40070
             },
             {
               "name": "No",
-              "price": 0.76,
-              "decimal_odds": 1.32,
-              "american_odds": "-316",
-              "best_bid": 0.76,
-              "best_ask": 0.77,
-              "volume": 22910
+              "price": 0.77,
+              "decimal_odds": 1.3,
+              "american_odds": "-334",
+              "best_bid": 0.77,
+              "best_ask": 0.78,
+              "volume": 40070
             }
           ],
           "market_type": "sports",
@@ -2309,26 +2558,26 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 22910,
-          "liquidity": 16986,
+          "total_volume": 40070,
+          "liquidity": 1521840.55,
           "is_active": false,
           "is_closed": false,
           "normalized_title": "philadelphia at new york g winner",
           "normalized_teams": [],
-          "fetched_at": "2025-10-06T04:22:44.780550"
+          "fetched_at": "2025-10-06T14:57:14.421791"
         }
       ],
       "best_platform": "polymarket",
       "best_outcome_name": "Eagles",
-      "best_price": 0.765,
-      "best_odds": "-325",
-      "price_spread": 53.5,
+      "best_price": 0.78,
+      "best_odds": "-354",
+      "price_spread": 56.0,
       "arbitrage_opportunity": false,
       "arbitrage_percentage": null,
       "price_deltas": {},
       "market_type": "sports",
       "normalized_title": "eagles vs. giants",
-      "last_updated": "2025-10-06T04:22:44.791521"
+      "last_updated": "2025-10-06T14:57:15.719312"
     },
     {
       "question": "Broncos vs. Jets",
@@ -2340,18 +2589,18 @@
           "outcomes": [
             {
               "name": "Broncos",
-              "price": 0.77,
-              "decimal_odds": 1.3,
-              "american_odds": "-334",
+              "price": 0.785,
+              "decimal_odds": 1.27,
+              "american_odds": "-365",
               "best_bid": null,
               "best_ask": null,
               "volume": null
             },
             {
               "name": "Jets",
-              "price": 0.23,
-              "decimal_odds": 4.35,
-              "american_odds": "+334",
+              "price": 0.215,
+              "decimal_odds": 4.65,
+              "american_odds": "+365",
               "best_bid": null,
               "best_ask": null,
               "volume": null
@@ -2364,8 +2613,8 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 5073.341768,
-          "liquidity": 71647.1397,
+          "total_volume": 23215.308578,
+          "liquidity": 126680.3807,
           "is_active": true,
           "is_closed": false,
           "normalized_title": "broncos vs. jets",
@@ -2373,7 +2622,7 @@
             "broncos",
             "jets"
           ],
-          "fetched_at": "2025-10-06T04:22:43.065329"
+          "fetched_at": "2025-10-06T14:57:10.283982"
         },
         {
           "platform": "kalshi",
@@ -2382,21 +2631,21 @@
           "outcomes": [
             {
               "name": "Yes",
-              "price": 0.23,
-              "decimal_odds": 4.35,
-              "american_odds": "+334",
-              "best_bid": 0.23,
-              "best_ask": 0.24,
-              "volume": 32573
+              "price": 0.22,
+              "decimal_odds": 4.55,
+              "american_odds": "+354",
+              "best_bid": 0.22,
+              "best_ask": 0.23,
+              "volume": 38929
             },
             {
               "name": "No",
-              "price": 0.76,
-              "decimal_odds": 1.32,
-              "american_odds": "-316",
-              "best_bid": 0.76,
-              "best_ask": 0.77,
-              "volume": 32573
+              "price": 0.77,
+              "decimal_odds": 1.3,
+              "american_odds": "-334",
+              "best_bid": 0.77,
+              "best_ask": 0.78,
+              "volume": 38929
             }
           ],
           "market_type": "sports",
@@ -2406,13 +2655,13 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 32573,
-          "liquidity": 32170,
+          "total_volume": 38929,
+          "liquidity": 1198501.44,
           "is_active": false,
           "is_closed": false,
           "normalized_title": "denver at new york j winner",
           "normalized_teams": [],
-          "fetched_at": "2025-10-06T04:22:44.780534"
+          "fetched_at": "2025-10-06T14:57:14.421740"
         },
         {
           "platform": "kalshi",
@@ -2421,21 +2670,21 @@
           "outcomes": [
             {
               "name": "Yes",
-              "price": 0.75,
-              "decimal_odds": 1.33,
-              "american_odds": "-300",
-              "best_bid": 0.75,
-              "best_ask": 0.76,
-              "volume": 18876
+              "price": 0.77,
+              "decimal_odds": 1.3,
+              "american_odds": "-334",
+              "best_bid": 0.77,
+              "best_ask": 0.78,
+              "volume": 23409
             },
             {
               "name": "No",
-              "price": 0.24,
-              "decimal_odds": 4.17,
-              "american_odds": "+316",
-              "best_bid": 0.24,
-              "best_ask": 0.25,
-              "volume": 18876
+              "price": 0.22,
+              "decimal_odds": 4.55,
+              "american_odds": "+354",
+              "best_bid": 0.22,
+              "best_ask": 0.23,
+              "volume": 23409
             }
           ],
           "market_type": "sports",
@@ -2445,26 +2694,26 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 18876,
-          "liquidity": 17202,
+          "total_volume": 23409,
+          "liquidity": 1202774.97,
           "is_active": false,
           "is_closed": false,
           "normalized_title": "denver at new york j winner",
           "normalized_teams": [],
-          "fetched_at": "2025-10-06T04:22:44.780539"
+          "fetched_at": "2025-10-06T14:57:14.421757"
         }
       ],
       "best_platform": "polymarket",
       "best_outcome_name": "Broncos",
-      "best_price": 0.77,
-      "best_odds": "-334",
-      "price_spread": 54.0,
+      "best_price": 0.785,
+      "best_odds": "-365",
+      "price_spread": 56.5,
       "arbitrage_opportunity": false,
       "arbitrage_percentage": null,
       "price_deltas": {},
       "market_type": "sports",
       "normalized_title": "broncos vs. jets",
-      "last_updated": "2025-10-06T04:22:44.791523"
+      "last_updated": "2025-10-06T14:57:15.719318"
     },
     {
       "question": "Rams vs. Ravens",
@@ -2476,18 +2725,18 @@
           "outcomes": [
             {
               "name": "Rams",
-              "price": 0.765,
-              "decimal_odds": 1.31,
-              "american_odds": "-325",
+              "price": 0.775,
+              "decimal_odds": 1.29,
+              "american_odds": "-344",
               "best_bid": null,
               "best_ask": null,
               "volume": null
             },
             {
               "name": "Ravens",
-              "price": 0.235,
-              "decimal_odds": 4.26,
-              "american_odds": "+325",
+              "price": 0.225,
+              "decimal_odds": 4.44,
+              "american_odds": "+344",
               "best_bid": null,
               "best_ask": null,
               "volume": null
@@ -2500,8 +2749,8 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 960.669337,
-          "liquidity": 28324.842,
+          "total_volume": 7049.466504,
+          "liquidity": 47931.0272,
           "is_active": true,
           "is_closed": false,
           "normalized_title": "rams vs. ravens",
@@ -2509,7 +2758,7 @@
             "rams",
             "ravens"
           ],
-          "fetched_at": "2025-10-06T04:22:43.065394"
+          "fetched_at": "2025-10-06T14:57:10.284131"
         },
         {
           "platform": "kalshi",
@@ -2518,21 +2767,21 @@
           "outcomes": [
             {
               "name": "Yes",
-              "price": 0.76,
-              "decimal_odds": 1.32,
-              "american_odds": "-316",
-              "best_bid": 0.76,
-              "best_ask": 0.8,
-              "volume": 4768
+              "price": 0.77,
+              "decimal_odds": 1.3,
+              "american_odds": "-334",
+              "best_bid": 0.77,
+              "best_ask": 0.78,
+              "volume": 6122
             },
             {
               "name": "No",
-              "price": 0.2,
-              "decimal_odds": 5.0,
-              "american_odds": "+400",
-              "best_bid": 0.2,
-              "best_ask": 0.24,
-              "volume": 4768
+              "price": 0.22,
+              "decimal_odds": 4.55,
+              "american_odds": "+354",
+              "best_bid": 0.22,
+              "best_ask": 0.23,
+              "volume": 6122
             }
           ],
           "market_type": "sports",
@@ -2542,13 +2791,13 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 4768,
-          "liquidity": 4584,
+          "total_volume": 6122,
+          "liquidity": 1205471.24,
           "is_active": false,
           "is_closed": false,
           "normalized_title": "los angeles r at baltimore winner",
           "normalized_teams": [],
-          "fetched_at": "2025-10-06T04:22:44.780496"
+          "fetched_at": "2025-10-06T14:57:14.421633"
         },
         {
           "platform": "kalshi",
@@ -2557,21 +2806,21 @@
           "outcomes": [
             {
               "name": "Yes",
-              "price": 0.24,
-              "decimal_odds": 4.17,
-              "american_odds": "+316",
-              "best_bid": 0.24,
-              "best_ask": 0.25,
-              "volume": 8399
+              "price": 0.22,
+              "decimal_odds": 4.55,
+              "american_odds": "+354",
+              "best_bid": 0.22,
+              "best_ask": 0.23,
+              "volume": 18762
             },
             {
               "name": "No",
-              "price": 0.75,
-              "decimal_odds": 1.33,
-              "american_odds": "-300",
-              "best_bid": 0.75,
-              "best_ask": 0.76,
-              "volume": 8399
+              "price": 0.77,
+              "decimal_odds": 1.3,
+              "american_odds": "-334",
+              "best_bid": 0.77,
+              "best_ask": 0.78,
+              "volume": 18762
             }
           ],
           "market_type": "sports",
@@ -2581,26 +2830,26 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 8399,
-          "liquidity": 7408,
+          "total_volume": 18762,
+          "liquidity": 1202172.89,
           "is_active": false,
           "is_closed": false,
           "normalized_title": "los angeles r at baltimore winner",
           "normalized_teams": [],
-          "fetched_at": "2025-10-06T04:22:44.780502"
+          "fetched_at": "2025-10-06T14:57:14.421649"
         }
       ],
       "best_platform": "polymarket",
       "best_outcome_name": "Rams",
-      "best_price": 0.765,
-      "best_odds": "-325",
-      "price_spread": 52.5,
+      "best_price": 0.775,
+      "best_odds": "-344",
+      "price_spread": 55.5,
       "arbitrage_opportunity": false,
       "arbitrage_percentage": null,
       "price_deltas": {},
       "market_type": "sports",
       "normalized_title": "rams vs. ravens",
-      "last_updated": "2025-10-06T04:22:44.791525"
+      "last_updated": "2025-10-06T14:57:15.719323"
     },
     {
       "question": "Cowboys vs. Panthers",
@@ -2612,18 +2861,18 @@
           "outcomes": [
             {
               "name": "Cowboys",
-              "price": 0.635,
-              "decimal_odds": 1.57,
-              "american_odds": "-173",
+              "price": 0.63,
+              "decimal_odds": 1.59,
+              "american_odds": "-170",
               "best_bid": null,
               "best_ask": null,
               "volume": null
             },
             {
               "name": "Panthers",
-              "price": 0.365,
-              "decimal_odds": 2.74,
-              "american_odds": "+173",
+              "price": 0.37,
+              "decimal_odds": 2.7,
+              "american_odds": "+170",
               "best_bid": null,
               "best_ask": null,
               "volume": null
@@ -2636,8 +2885,8 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 5810.315788,
-          "liquidity": 71170.2761,
+          "total_volume": 6624.285205,
+          "liquidity": 149927.559,
           "is_active": true,
           "is_closed": false,
           "normalized_title": "cowboys vs. panthers",
@@ -2645,7 +2894,7 @@
             "cowboys",
             "panthers"
           ],
-          "fetched_at": "2025-10-06T04:22:43.065471"
+          "fetched_at": "2025-10-06T14:57:10.284190"
         },
         {
           "platform": "kalshi",
@@ -2658,17 +2907,17 @@
               "decimal_odds": 1.59,
               "american_odds": "-170",
               "best_bid": 0.63,
-              "best_ask": 0.65,
-              "volume": 12290
+              "best_ask": 0.64,
+              "volume": 29410
             },
             {
               "name": "No",
-              "price": 0.35,
-              "decimal_odds": 2.86,
-              "american_odds": "+185",
-              "best_bid": 0.35,
+              "price": 0.36,
+              "decimal_odds": 2.78,
+              "american_odds": "+177",
+              "best_bid": 0.36,
               "best_ask": 0.37,
-              "volume": 12290
+              "volume": 29410
             }
           ],
           "market_type": "sports",
@@ -2678,13 +2927,13 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 12290,
-          "liquidity": 12188,
+          "total_volume": 29410,
+          "liquidity": 1223486.86,
           "is_active": false,
           "is_closed": false,
           "normalized_title": "dallas at carolina winner",
           "normalized_teams": [],
-          "fetched_at": "2025-10-06T04:22:44.780450"
+          "fetched_at": "2025-10-06T14:57:14.421492"
         },
         {
           "platform": "kalshi",
@@ -2693,12 +2942,12 @@
           "outcomes": [
             {
               "name": "Yes",
-              "price": 0.33,
-              "decimal_odds": 3.03,
-              "american_odds": "+203",
-              "best_bid": 0.33,
+              "price": 0.36,
+              "decimal_odds": 2.78,
+              "american_odds": "+177",
+              "best_bid": 0.36,
               "best_ask": 0.37,
-              "volume": 4641
+              "volume": 8019
             },
             {
               "name": "No",
@@ -2706,8 +2955,8 @@
               "decimal_odds": 1.59,
               "american_odds": "-170",
               "best_bid": 0.63,
-              "best_ask": 0.67,
-              "volume": 4641
+              "best_ask": 0.64,
+              "volume": 8019
             }
           ],
           "market_type": "sports",
@@ -2717,26 +2966,26 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 4641,
-          "liquidity": 4574,
+          "total_volume": 8019,
+          "liquidity": 1220832.35,
           "is_active": false,
           "is_closed": false,
           "normalized_title": "dallas at carolina winner",
           "normalized_teams": [],
-          "fetched_at": "2025-10-06T04:22:44.780455"
+          "fetched_at": "2025-10-06T14:57:14.421509"
         }
       ],
       "best_platform": "polymarket",
       "best_outcome_name": "Cowboys",
-      "best_price": 0.635,
-      "best_odds": "-173",
-      "price_spread": 30.5,
+      "best_price": 0.63,
+      "best_odds": "-170",
+      "price_spread": 27.0,
       "arbitrage_opportunity": false,
       "arbitrage_percentage": null,
       "price_deltas": {},
       "market_type": "sports",
       "normalized_title": "cowboys vs. panthers",
-      "last_updated": "2025-10-06T04:22:44.791527"
+      "last_updated": "2025-10-06T14:57:15.719327"
     },
     {
       "question": "Cardinals vs. Colts",
@@ -2748,18 +2997,18 @@
           "outcomes": [
             {
               "name": "Cardinals",
-              "price": 0.3,
-              "decimal_odds": 3.33,
-              "american_odds": "+233",
+              "price": 0.295,
+              "decimal_odds": 3.39,
+              "american_odds": "+238",
               "best_bid": null,
               "best_ask": null,
               "volume": null
             },
             {
               "name": "Colts",
-              "price": 0.7,
-              "decimal_odds": 1.43,
-              "american_odds": "-233",
+              "price": 0.705,
+              "decimal_odds": 1.42,
+              "american_odds": "-238",
               "best_bid": null,
               "best_ask": null,
               "volume": null
@@ -2772,8 +3021,8 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 4725.388885,
-          "liquidity": 17640.1562,
+          "total_volume": 9313.854793,
+          "liquidity": 80480.294,
           "is_active": true,
           "is_closed": false,
           "normalized_title": "cardinals vs. colts",
@@ -2781,7 +3030,7 @@
             "cardinals",
             "colts"
           ],
-          "fetched_at": "2025-10-06T04:22:43.065534"
+          "fetched_at": "2025-10-06T14:57:10.284245"
         },
         {
           "platform": "kalshi",
@@ -2790,21 +3039,21 @@
           "outcomes": [
             {
               "name": "Yes",
-              "price": 0.69,
-              "decimal_odds": 1.45,
-              "american_odds": "-222",
-              "best_bid": 0.69,
-              "best_ask": 0.73,
-              "volume": 13249
+              "price": 0.7,
+              "decimal_odds": 1.43,
+              "american_odds": "-233",
+              "best_bid": 0.7,
+              "best_ask": 0.71,
+              "volume": 16501
             },
             {
               "name": "No",
-              "price": 0.27,
-              "decimal_odds": 3.7,
-              "american_odds": "+270",
-              "best_bid": 0.27,
-              "best_ask": 0.31,
-              "volume": 13249
+              "price": 0.29,
+              "decimal_odds": 3.45,
+              "american_odds": "+244",
+              "best_bid": 0.29,
+              "best_ask": 0.3,
+              "volume": 16501
             }
           ],
           "market_type": "sports",
@@ -2814,13 +3063,13 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 13249,
-          "liquidity": 12768,
+          "total_volume": 16501,
+          "liquidity": 1186479.25,
           "is_active": false,
           "is_closed": false,
           "normalized_title": "arizona at indianapolis winner",
           "normalized_teams": [],
-          "fetched_at": "2025-10-06T04:22:44.780522"
+          "fetched_at": "2025-10-06T14:57:14.421703"
         },
         {
           "platform": "kalshi",
@@ -2829,21 +3078,21 @@
           "outcomes": [
             {
               "name": "Yes",
-              "price": 0.27,
-              "decimal_odds": 3.7,
-              "american_odds": "+270",
-              "best_bid": 0.27,
-              "best_ask": 0.31,
-              "volume": 2033
+              "price": 0.29,
+              "decimal_odds": 3.45,
+              "american_odds": "+244",
+              "best_bid": 0.29,
+              "best_ask": 0.3,
+              "volume": 4762
             },
             {
               "name": "No",
-              "price": 0.69,
-              "decimal_odds": 1.45,
-              "american_odds": "-222",
-              "best_bid": 0.69,
-              "best_ask": 0.73,
-              "volume": 2033
+              "price": 0.7,
+              "decimal_odds": 1.43,
+              "american_odds": "-233",
+              "best_bid": 0.7,
+              "best_ask": 0.71,
+              "volume": 4762
             }
           ],
           "market_type": "sports",
@@ -2853,26 +3102,162 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 2033,
-          "liquidity": 1795,
+          "total_volume": 4762,
+          "liquidity": 1186991.18,
           "is_active": false,
           "is_closed": false,
           "normalized_title": "arizona at indianapolis winner",
           "normalized_teams": [],
-          "fetched_at": "2025-10-06T04:22:44.780528"
+          "fetched_at": "2025-10-06T14:57:14.421721"
         }
       ],
       "best_platform": "kalshi",
       "best_outcome_name": "Yes",
-      "best_price": 0.69,
-      "best_odds": "-222",
-      "price_spread": 42.0,
+      "best_price": 0.7,
+      "best_odds": "-233",
+      "price_spread": 41.0,
       "arbitrage_opportunity": false,
       "arbitrage_percentage": null,
       "price_deltas": {},
       "market_type": "sports",
       "normalized_title": "cardinals vs. colts",
-      "last_updated": "2025-10-06T04:22:44.791529"
+      "last_updated": "2025-10-06T14:57:15.719332"
+    },
+    {
+      "question": "Seahawks vs. Jaguars",
+      "markets": [
+        {
+          "platform": "polymarket",
+          "market_id": "0x102c98f54c6d5be80d8380ce55a93ae10bc4fd285729b3aa33a6712484c9375a",
+          "question": "Seahawks vs. Jaguars",
+          "outcomes": [
+            {
+              "name": "Seahawks",
+              "price": 0.515,
+              "decimal_odds": 1.94,
+              "american_odds": "-106",
+              "best_bid": null,
+              "best_ask": null,
+              "volume": null
+            },
+            {
+              "name": "Jaguars",
+              "price": 0.485,
+              "decimal_odds": 2.06,
+              "american_odds": "+106",
+              "best_bid": null,
+              "best_ask": null,
+              "volume": null
+            }
+          ],
+          "market_type": "sports",
+          "start_time": "2025-10-12T17:00:00+00:00",
+          "end_time": "2025-10-19T17:00:00+00:00",
+          "category": null,
+          "subcategory": null,
+          "sport": null,
+          "league": null,
+          "total_volume": 4762.803631,
+          "liquidity": 16093.4463,
+          "is_active": true,
+          "is_closed": false,
+          "normalized_title": "seahawks vs. jaguars",
+          "normalized_teams": [
+            "seahawks",
+            "jaguars"
+          ],
+          "fetched_at": "2025-10-06T14:57:10.284299"
+        },
+        {
+          "platform": "kalshi",
+          "market_id": "KXNFLGAME-25OCT12SEAJAC-SEA",
+          "question": "Seattle at Jacksonville Winner?",
+          "outcomes": [
+            {
+              "name": "Yes",
+              "price": 0.53,
+              "decimal_odds": 1.89,
+              "american_odds": "-112",
+              "best_bid": 0.53,
+              "best_ask": 0.54,
+              "volume": 42466
+            },
+            {
+              "name": "No",
+              "price": 0.46,
+              "decimal_odds": 2.17,
+              "american_odds": "+117",
+              "best_bid": 0.46,
+              "best_ask": 0.47,
+              "volume": 42466
+            }
+          ],
+          "market_type": "sports",
+          "start_time": "2025-10-12T20:00:00+00:00",
+          "end_time": "2025-10-26T17:00:00+00:00",
+          "category": "",
+          "subcategory": null,
+          "sport": null,
+          "league": null,
+          "total_volume": 42466,
+          "liquidity": 1197673.03,
+          "is_active": false,
+          "is_closed": false,
+          "normalized_title": "seattle at jacksonville winner",
+          "normalized_teams": [],
+          "fetched_at": "2025-10-06T14:57:14.421562"
+        },
+        {
+          "platform": "kalshi",
+          "market_id": "KXNFLGAME-25OCT12SEAJAC-JAC",
+          "question": "Seattle at Jacksonville Winner?",
+          "outcomes": [
+            {
+              "name": "Yes",
+              "price": 0.47,
+              "decimal_odds": 2.13,
+              "american_odds": "+112",
+              "best_bid": 0.47,
+              "best_ask": 0.49,
+              "volume": 7295
+            },
+            {
+              "name": "No",
+              "price": 0.51,
+              "decimal_odds": 1.96,
+              "american_odds": "-104",
+              "best_bid": 0.51,
+              "best_ask": 0.53,
+              "volume": 7295
+            }
+          ],
+          "market_type": "sports",
+          "start_time": "2025-10-12T20:00:00+00:00",
+          "end_time": "2025-10-26T17:00:00+00:00",
+          "category": "",
+          "subcategory": null,
+          "sport": null,
+          "league": null,
+          "total_volume": 7295,
+          "liquidity": 1157582.91,
+          "is_active": false,
+          "is_closed": false,
+          "normalized_title": "seattle at jacksonville winner",
+          "normalized_teams": [],
+          "fetched_at": "2025-10-06T14:57:14.421579"
+        }
+      ],
+      "best_platform": "kalshi",
+      "best_outcome_name": "Yes",
+      "best_price": 0.53,
+      "best_odds": "-112",
+      "price_spread": 6.0,
+      "arbitrage_opportunity": false,
+      "arbitrage_percentage": null,
+      "price_deltas": {},
+      "market_type": "sports",
+      "normalized_title": "seahawks vs. jaguars",
+      "last_updated": "2025-10-06T14:57:15.719335"
     },
     {
       "question": "Chargers vs. Dolphins",
@@ -2884,18 +3269,18 @@
           "outcomes": [
             {
               "name": "Chargers",
-              "price": 0.695,
-              "decimal_odds": 1.44,
-              "american_odds": "-227",
+              "price": 0.7,
+              "decimal_odds": 1.43,
+              "american_odds": "-233",
               "best_bid": null,
               "best_ask": null,
               "volume": null
             },
             {
               "name": "Dolphins",
-              "price": 0.305,
-              "decimal_odds": 3.28,
-              "american_odds": "+227",
+              "price": 0.3,
+              "decimal_odds": 3.33,
+              "american_odds": "+233",
               "best_bid": null,
               "best_ask": null,
               "volume": null
@@ -2908,8 +3293,8 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 2293.406188,
-          "liquidity": 71776.0675,
+          "total_volume": 3011.409643,
+          "liquidity": 140186.3357,
           "is_active": true,
           "is_closed": false,
           "normalized_title": "chargers vs. dolphins",
@@ -2917,7 +3302,7 @@
             "chargers",
             "dolphins"
           ],
-          "fetched_at": "2025-10-06T04:22:43.065656"
+          "fetched_at": "2025-10-06T14:57:10.284359"
         },
         {
           "platform": "kalshi",
@@ -2930,17 +3315,17 @@
               "decimal_odds": 3.33,
               "american_odds": "+233",
               "best_bid": 0.3,
-              "best_ask": 0.33,
-              "volume": 8740
+              "best_ask": 0.31,
+              "volume": 18926
             },
             {
               "name": "No",
-              "price": 0.67,
-              "decimal_odds": 1.49,
-              "american_odds": "-203",
-              "best_bid": 0.67,
+              "price": 0.69,
+              "decimal_odds": 1.45,
+              "american_odds": "-222",
+              "best_bid": 0.69,
               "best_ask": 0.7,
-              "volume": 8740
+              "volume": 18926
             }
           ],
           "market_type": "sports",
@@ -2950,13 +3335,13 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 8740,
-          "liquidity": 8526,
+          "total_volume": 18926,
+          "liquidity": 1179768.88,
           "is_active": false,
           "is_closed": false,
           "normalized_title": "los angeles c at miami winner",
           "normalized_teams": [],
-          "fetched_at": "2025-10-06T04:22:44.780461"
+          "fetched_at": "2025-10-06T14:57:14.421527"
         },
         {
           "platform": "kalshi",
@@ -2965,21 +3350,21 @@
           "outcomes": [
             {
               "name": "Yes",
-              "price": 0.67,
-              "decimal_odds": 1.49,
-              "american_odds": "-203",
-              "best_bid": 0.67,
-              "best_ask": 0.69,
-              "volume": 4137
+              "price": 0.69,
+              "decimal_odds": 1.45,
+              "american_odds": "-222",
+              "best_bid": 0.69,
+              "best_ask": 0.7,
+              "volume": 6542
             },
             {
               "name": "No",
-              "price": 0.31,
-              "decimal_odds": 3.23,
-              "american_odds": "+222",
-              "best_bid": 0.31,
-              "best_ask": 0.33,
-              "volume": 4137
+              "price": 0.3,
+              "decimal_odds": 3.33,
+              "american_odds": "+233",
+              "best_bid": 0.3,
+              "best_ask": 0.31,
+              "volume": 6542
             }
           ],
           "market_type": "sports",
@@ -2989,26 +3374,26 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 4137,
-          "liquidity": 3977,
+          "total_volume": 6542,
+          "liquidity": 1178301.91,
           "is_active": false,
           "is_closed": false,
           "normalized_title": "los angeles c at miami winner",
           "normalized_teams": [],
-          "fetched_at": "2025-10-06T04:22:44.780467"
+          "fetched_at": "2025-10-06T14:57:14.421544"
         }
       ],
       "best_platform": "polymarket",
       "best_outcome_name": "Chargers",
-      "best_price": 0.695,
-      "best_odds": "-227",
-      "price_spread": 39.5,
+      "best_price": 0.7,
+      "best_odds": "-233",
+      "price_spread": 40.0,
       "arbitrage_opportunity": false,
       "arbitrage_percentage": null,
       "price_deltas": {},
       "market_type": "sports",
       "normalized_title": "chargers vs. dolphins",
-      "last_updated": "2025-10-06T04:22:44.791530"
+      "last_updated": "2025-10-06T14:57:15.719339"
     },
     {
       "question": "Patriots vs. Saints",
@@ -3044,8 +3429,8 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 3008.802846,
-          "liquidity": 3451.5809,
+          "total_volume": 5262.898379,
+          "liquidity": 78338.8517,
           "is_active": true,
           "is_closed": false,
           "normalized_title": "patriots vs. saints",
@@ -3053,7 +3438,7 @@
             "patriots",
             "saints"
           ],
-          "fetched_at": "2025-10-06T04:22:43.065724"
+          "fetched_at": "2025-10-06T14:57:10.284421"
         },
         {
           "platform": "kalshi",
@@ -3062,21 +3447,21 @@
           "outcomes": [
             {
               "name": "Yes",
-              "price": 0.35,
-              "decimal_odds": 2.86,
-              "american_odds": "+185",
-              "best_bid": 0.35,
-              "best_ask": 0.38,
-              "volume": 1537
+              "price": 0.37,
+              "decimal_odds": 2.7,
+              "american_odds": "+170",
+              "best_bid": 0.37,
+              "best_ask": 0.39,
+              "volume": 49084
             },
             {
               "name": "No",
-              "price": 0.62,
-              "decimal_odds": 1.61,
-              "american_odds": "-163",
-              "best_bid": 0.62,
-              "best_ask": 0.65,
-              "volume": 1537
+              "price": 0.61,
+              "decimal_odds": 1.64,
+              "american_odds": "-156",
+              "best_bid": 0.61,
+              "best_ask": 0.63,
+              "volume": 49084
             }
           ],
           "market_type": "sports",
@@ -3086,13 +3471,13 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 1537,
-          "liquidity": 1016,
+          "total_volume": 49084,
+          "liquidity": 1220506.51,
           "is_active": false,
           "is_closed": false,
           "normalized_title": "new england at new orleans winner",
           "normalized_teams": [],
-          "fetched_at": "2025-10-06T04:22:44.780508"
+          "fetched_at": "2025-10-06T14:57:14.421669"
         },
         {
           "platform": "kalshi",
@@ -3101,21 +3486,21 @@
           "outcomes": [
             {
               "name": "Yes",
-              "price": 0.62,
-              "decimal_odds": 1.61,
-              "american_odds": "-163",
-              "best_bid": 0.62,
-              "best_ask": 0.65,
-              "volume": 3632
+              "price": 0.63,
+              "decimal_odds": 1.59,
+              "american_odds": "-170",
+              "best_bid": 0.63,
+              "best_ask": 0.64,
+              "volume": 15909
             },
             {
               "name": "No",
-              "price": 0.35,
-              "decimal_odds": 2.86,
-              "american_odds": "+185",
-              "best_bid": 0.35,
-              "best_ask": 0.38,
-              "volume": 3632
+              "price": 0.36,
+              "decimal_odds": 2.78,
+              "american_odds": "+177",
+              "best_bid": 0.36,
+              "best_ask": 0.37,
+              "volume": 15909
             }
           ],
           "market_type": "sports",
@@ -3125,26 +3510,26 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 3632,
-          "liquidity": 3459,
+          "total_volume": 15909,
+          "liquidity": 1264555.75,
           "is_active": false,
           "is_closed": false,
           "normalized_title": "new england at new orleans winner",
           "normalized_teams": [],
-          "fetched_at": "2025-10-06T04:22:44.780513"
+          "fetched_at": "2025-10-06T14:57:14.421686"
         }
       ],
-      "best_platform": "polymarket",
-      "best_outcome_name": "Patriots",
-      "best_price": 0.625,
-      "best_odds": "-166",
-      "price_spread": 27.5,
+      "best_platform": "kalshi",
+      "best_outcome_name": "Yes",
+      "best_price": 0.63,
+      "best_odds": "-170",
+      "price_spread": 26.0,
       "arbitrage_opportunity": false,
       "arbitrage_percentage": null,
       "price_deltas": {},
       "market_type": "sports",
       "normalized_title": "patriots vs. saints",
-      "last_updated": "2025-10-06T04:22:44.791534"
+      "last_updated": "2025-10-06T14:57:15.719343"
     },
     {
       "question": "Browns vs. Steelers",
@@ -3156,18 +3541,18 @@
           "outcomes": [
             {
               "name": "Browns",
-              "price": 0.295,
-              "decimal_odds": 3.39,
-              "american_odds": "+238",
+              "price": 0.31,
+              "decimal_odds": 3.23,
+              "american_odds": "+222",
               "best_bid": null,
               "best_ask": null,
               "volume": null
             },
             {
               "name": "Steelers",
-              "price": 0.705,
-              "decimal_odds": 1.42,
-              "american_odds": "-238",
+              "price": 0.69,
+              "decimal_odds": 1.45,
+              "american_odds": "-222",
               "best_bid": null,
               "best_ask": null,
               "volume": null
@@ -3180,8 +3565,8 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 16504.63293,
-          "liquidity": 100592.6766,
+          "total_volume": 20491.301057,
+          "liquidity": 136125.4306,
           "is_active": true,
           "is_closed": false,
           "normalized_title": "browns vs. steelers",
@@ -3189,7 +3574,7 @@
             "browns",
             "steelers"
           ],
-          "fetched_at": "2025-10-06T04:22:43.065785"
+          "fetched_at": "2025-10-06T14:57:10.284476"
         },
         {
           "platform": "kalshi",
@@ -3198,21 +3583,21 @@
           "outcomes": [
             {
               "name": "Yes",
-              "price": 0.68,
-              "decimal_odds": 1.47,
-              "american_odds": "-212",
-              "best_bid": 0.68,
-              "best_ask": 0.7,
-              "volume": 5272
+              "price": 0.67,
+              "decimal_odds": 1.49,
+              "american_odds": "-203",
+              "best_bid": 0.67,
+              "best_ask": 0.68,
+              "volume": 7904
             },
             {
               "name": "No",
-              "price": 0.3,
-              "decimal_odds": 3.33,
-              "american_odds": "+233",
-              "best_bid": 0.3,
-              "best_ask": 0.32,
-              "volume": 5272
+              "price": 0.32,
+              "decimal_odds": 3.12,
+              "american_odds": "+212",
+              "best_bid": 0.32,
+              "best_ask": 0.33,
+              "volume": 7904
             }
           ],
           "market_type": "sports",
@@ -3222,13 +3607,13 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 5272,
-          "liquidity": 4705,
+          "total_volume": 7904,
+          "liquidity": 1186475.6,
           "is_active": false,
           "is_closed": false,
           "normalized_title": "cleveland at pittsburgh winner",
           "normalized_teams": [],
-          "fetched_at": "2025-10-06T04:22:44.780485"
+          "fetched_at": "2025-10-06T14:57:14.421597"
         },
         {
           "platform": "kalshi",
@@ -3237,21 +3622,21 @@
           "outcomes": [
             {
               "name": "Yes",
-              "price": 0.31,
-              "decimal_odds": 3.23,
-              "american_odds": "+222",
-              "best_bid": 0.31,
-              "best_ask": 0.32,
-              "volume": 6280
+              "price": 0.32,
+              "decimal_odds": 3.12,
+              "american_odds": "+212",
+              "best_bid": 0.32,
+              "best_ask": 0.33,
+              "volume": 12220
             },
             {
               "name": "No",
-              "price": 0.68,
-              "decimal_odds": 1.47,
-              "american_odds": "-212",
-              "best_bid": 0.68,
-              "best_ask": 0.69,
-              "volume": 6280
+              "price": 0.67,
+              "decimal_odds": 1.49,
+              "american_odds": "-203",
+              "best_bid": 0.67,
+              "best_ask": 0.68,
+              "volume": 12220
             }
           ],
           "market_type": "sports",
@@ -3261,26 +3646,26 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 6280,
-          "liquidity": 6178,
+          "total_volume": 12220,
+          "liquidity": 1187265.16,
           "is_active": false,
           "is_closed": false,
           "normalized_title": "cleveland at pittsburgh winner",
           "normalized_teams": [],
-          "fetched_at": "2025-10-06T04:22:44.780491"
+          "fetched_at": "2025-10-06T14:57:14.421615"
         }
       ],
       "best_platform": "kalshi",
       "best_outcome_name": "Yes",
-      "best_price": 0.68,
-      "best_odds": "-212",
-      "price_spread": 38.5,
+      "best_price": 0.67,
+      "best_odds": "-203",
+      "price_spread": 36.0,
       "arbitrage_opportunity": false,
       "arbitrage_percentage": null,
       "price_deltas": {},
       "market_type": "sports",
       "normalized_title": "browns vs. steelers",
-      "last_updated": "2025-10-06T04:22:44.791536"
+      "last_updated": "2025-10-06T14:57:15.719346"
     },
     {
       "question": "Titans vs. Raiders",
@@ -3292,18 +3677,18 @@
           "outcomes": [
             {
               "name": "Titans",
-              "price": 0.295,
-              "decimal_odds": 3.39,
-              "american_odds": "+238",
+              "price": 0.305,
+              "decimal_odds": 3.28,
+              "american_odds": "+227",
               "best_bid": null,
               "best_ask": null,
               "volume": null
             },
             {
               "name": "Raiders",
-              "price": 0.705,
-              "decimal_odds": 1.42,
-              "american_odds": "-238",
+              "price": 0.695,
+              "decimal_odds": 1.44,
+              "american_odds": "-227",
               "best_bid": null,
               "best_ask": null,
               "volume": null
@@ -3316,8 +3701,8 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 1592.601871,
-          "liquidity": 71511.4314,
+          "total_volume": 6119.593683,
+          "liquidity": 133683.5091,
           "is_active": true,
           "is_closed": false,
           "normalized_title": "titans vs. raiders",
@@ -3325,7 +3710,7 @@
             "titans",
             "raiders"
           ],
-          "fetched_at": "2025-10-06T04:22:43.065848"
+          "fetched_at": "2025-10-06T14:57:10.284532"
         },
         {
           "platform": "kalshi",
@@ -3334,12 +3719,12 @@
           "outcomes": [
             {
               "name": "Yes",
-              "price": 0.29,
-              "decimal_odds": 3.45,
-              "american_odds": "+244",
-              "best_bid": 0.29,
+              "price": 0.31,
+              "decimal_odds": 3.23,
+              "american_odds": "+222",
+              "best_bid": 0.31,
               "best_ask": 0.32,
-              "volume": 16297
+              "volume": 23006
             },
             {
               "name": "No",
@@ -3347,8 +3732,8 @@
               "decimal_odds": 1.47,
               "american_odds": "-212",
               "best_bid": 0.68,
-              "best_ask": 0.71,
-              "volume": 16297
+              "best_ask": 0.69,
+              "volume": 23006
             }
           ],
           "market_type": "sports",
@@ -3358,13 +3743,13 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 16297,
-          "liquidity": 15417,
+          "total_volume": 23006,
+          "liquidity": 1235115.48,
           "is_active": false,
           "is_closed": false,
           "normalized_title": "tennessee at las vegas winner",
           "normalized_teams": [],
-          "fetched_at": "2025-10-06T04:22:44.780437"
+          "fetched_at": "2025-10-06T14:57:14.421456"
         },
         {
           "platform": "kalshi",
@@ -3373,21 +3758,21 @@
           "outcomes": [
             {
               "name": "Yes",
-              "price": 0.7,
-              "decimal_odds": 1.43,
-              "american_odds": "-233",
-              "best_bid": 0.7,
-              "best_ask": 0.71,
-              "volume": 1287
+              "price": 0.68,
+              "decimal_odds": 1.47,
+              "american_odds": "-212",
+              "best_bid": 0.68,
+              "best_ask": 0.69,
+              "volume": 2471
             },
             {
               "name": "No",
-              "price": 0.29,
-              "decimal_odds": 3.45,
-              "american_odds": "+244",
-              "best_bid": 0.29,
-              "best_ask": 0.3,
-              "volume": 1287
+              "price": 0.31,
+              "decimal_odds": 3.23,
+              "american_odds": "+222",
+              "best_bid": 0.31,
+              "best_ask": 0.32,
+              "volume": 2471
             }
           ],
           "market_type": "sports",
@@ -3397,26 +3782,26 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 1287,
-          "liquidity": 808,
+          "total_volume": 2471,
+          "liquidity": 1237093.49,
           "is_active": false,
           "is_closed": false,
           "normalized_title": "tennessee at las vegas winner",
           "normalized_teams": [],
-          "fetched_at": "2025-10-06T04:22:44.780443"
+          "fetched_at": "2025-10-06T14:57:14.421473"
         }
       ],
       "best_platform": "kalshi",
       "best_outcome_name": "Yes",
-      "best_price": 0.7,
-      "best_odds": "-233",
-      "price_spread": 41.0,
+      "best_price": 0.68,
+      "best_odds": "-212",
+      "price_spread": 37.5,
       "arbitrage_opportunity": false,
       "arbitrage_percentage": null,
       "price_deltas": {},
       "market_type": "sports",
       "normalized_title": "titans vs. raiders",
-      "last_updated": "2025-10-06T04:22:44.791539"
+      "last_updated": "2025-10-06T14:57:15.719350"
     },
     {
       "question": "Bengals vs. Packers",
@@ -3452,8 +3837,8 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 11053.734263,
-          "liquidity": 65207.9301,
+          "total_volume": 24759.121869,
+          "liquidity": 131735.6037,
           "is_active": true,
           "is_closed": false,
           "normalized_title": "bengals vs. packers",
@@ -3461,7 +3846,7 @@
             "bengals",
             "packers"
           ],
-          "fetched_at": "2025-10-06T04:22:43.065910"
+          "fetched_at": "2025-10-06T14:57:10.284584"
         },
         {
           "platform": "kalshi",
@@ -3470,12 +3855,12 @@
           "outcomes": [
             {
               "name": "Yes",
-              "price": 0.87,
-              "decimal_odds": 1.15,
-              "american_odds": "-669",
-              "best_bid": 0.87,
+              "price": 0.88,
+              "decimal_odds": 1.14,
+              "american_odds": "-733",
+              "best_bid": 0.88,
               "best_ask": 0.89,
-              "volume": 10983
+              "volume": 12629
             },
             {
               "name": "No",
@@ -3483,8 +3868,8 @@
               "decimal_odds": 9.09,
               "american_odds": "+809",
               "best_bid": 0.11,
-              "best_ask": 0.13,
-              "volume": 10983
+              "best_ask": 0.12,
+              "volume": 12629
             }
           ],
           "market_type": "sports",
@@ -3494,13 +3879,13 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 10983,
-          "liquidity": 10225,
+          "total_volume": 12629,
+          "liquidity": 1027998.21,
           "is_active": false,
           "is_closed": false,
           "normalized_title": "cincinnati at green bay winner",
           "normalized_teams": [],
-          "fetched_at": "2025-10-06T04:22:44.780398"
+          "fetched_at": "2025-10-06T14:57:14.421387"
         },
         {
           "platform": "kalshi",
@@ -3513,17 +3898,17 @@
               "decimal_odds": 9.09,
               "american_odds": "+809",
               "best_bid": 0.11,
-              "best_ask": 0.13,
-              "volume": 33539
+              "best_ask": 0.12,
+              "volume": 74040
             },
             {
               "name": "No",
-              "price": 0.87,
-              "decimal_odds": 1.15,
-              "american_odds": "-669",
-              "best_bid": 0.87,
+              "price": 0.88,
+              "decimal_odds": 1.14,
+              "american_odds": "-733",
+              "best_bid": 0.88,
               "best_ask": 0.89,
-              "volume": 33539
+              "volume": 74040
             }
           ],
           "market_type": "sports",
@@ -3533,26 +3918,26 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 33539,
-          "liquidity": 33082,
+          "total_volume": 74040,
+          "liquidity": 1031584.55,
           "is_active": false,
           "is_closed": false,
           "normalized_title": "cincinnati at green bay winner",
           "normalized_teams": [],
-          "fetched_at": "2025-10-06T04:22:44.780415"
+          "fetched_at": "2025-10-06T14:57:14.421405"
         }
       ],
       "best_platform": "kalshi",
       "best_outcome_name": "Yes",
-      "best_price": 0.87,
-      "best_odds": "-669",
-      "price_spread": 76.5,
+      "best_price": 0.88,
+      "best_odds": "-733",
+      "price_spread": 77.5,
       "arbitrage_opportunity": false,
       "arbitrage_percentage": null,
       "price_deltas": {},
       "market_type": "sports",
       "normalized_title": "bengals vs. packers",
-      "last_updated": "2025-10-06T04:22:44.791540"
+      "last_updated": "2025-10-06T14:57:15.719353"
     },
     {
       "question": "Lions vs. Chiefs",
@@ -3564,18 +3949,18 @@
           "outcomes": [
             {
               "name": "Lions",
-              "price": 0.49,
-              "decimal_odds": 2.04,
-              "american_odds": "+104",
+              "price": 0.51,
+              "decimal_odds": 1.96,
+              "american_odds": "-104",
               "best_bid": null,
               "best_ask": null,
               "volume": null
             },
             {
               "name": "Chiefs",
-              "price": 0.51,
-              "decimal_odds": 1.96,
-              "american_odds": "-104",
+              "price": 0.49,
+              "decimal_odds": 2.04,
+              "american_odds": "+104",
               "best_bid": null,
               "best_ask": null,
               "volume": null
@@ -3588,8 +3973,8 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 3150.105177,
-          "liquidity": 1510.9588,
+          "total_volume": 7397.485177,
+          "liquidity": 4721.4628,
           "is_active": true,
           "is_closed": false,
           "normalized_title": "lions vs. chiefs",
@@ -3597,7 +3982,7 @@
             "lions",
             "chiefs"
           ],
-          "fetched_at": "2025-10-06T04:22:43.066035"
+          "fetched_at": "2025-10-06T14:57:10.284697"
         },
         {
           "platform": "kalshi",
@@ -3606,21 +3991,21 @@
           "outcomes": [
             {
               "name": "Yes",
+              "price": 0.5,
+              "decimal_odds": 2.0,
+              "american_odds": "+100",
+              "best_bid": 0.5,
+              "best_ask": 0.51,
+              "volume": 11424
+            },
+            {
+              "name": "No",
               "price": 0.49,
               "decimal_odds": 2.04,
               "american_odds": "+104",
               "best_bid": 0.49,
-              "best_ask": 0.53,
-              "volume": 10515
-            },
-            {
-              "name": "No",
-              "price": 0.47,
-              "decimal_odds": 2.13,
-              "american_odds": "+112",
-              "best_bid": 0.47,
-              "best_ask": 0.51,
-              "volume": 10515
+              "best_ask": 0.5,
+              "volume": 11424
             }
           ],
           "market_type": "sports",
@@ -3630,13 +4015,13 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 10515,
-          "liquidity": 9222,
+          "total_volume": 11424,
+          "liquidity": 1147883.29,
           "is_active": false,
           "is_closed": false,
           "normalized_title": "detroit at kansas city winner",
           "normalized_teams": [],
-          "fetched_at": "2025-10-06T04:22:44.780385"
+          "fetched_at": "2025-10-06T14:57:14.421349"
         },
         {
           "platform": "kalshi",
@@ -3645,21 +4030,21 @@
           "outcomes": [
             {
               "name": "Yes",
-              "price": 0.49,
-              "decimal_odds": 2.04,
-              "american_odds": "+104",
-              "best_bid": 0.49,
-              "best_ask": 0.5,
-              "volume": 20521
+              "price": 0.51,
+              "decimal_odds": 1.96,
+              "american_odds": "-104",
+              "best_bid": 0.51,
+              "best_ask": 0.52,
+              "volume": 38987
             },
             {
               "name": "No",
-              "price": 0.5,
-              "decimal_odds": 2.0,
-              "american_odds": "+100",
-              "best_bid": 0.5,
-              "best_ask": 0.51,
-              "volume": 20521
+              "price": 0.48,
+              "decimal_odds": 2.08,
+              "american_odds": "+108",
+              "best_bid": 0.48,
+              "best_ask": 0.49,
+              "volume": 38987
             }
           ],
           "market_type": "sports",
@@ -3669,26 +4054,298 @@
           "subcategory": null,
           "sport": null,
           "league": null,
-          "total_volume": 20521,
-          "liquidity": 20075,
+          "total_volume": 38987,
+          "liquidity": 1225491.25,
           "is_active": false,
           "is_closed": false,
           "normalized_title": "detroit at kansas city winner",
           "normalized_teams": [],
-          "fetched_at": "2025-10-06T04:22:44.780391"
+          "fetched_at": "2025-10-06T14:57:14.421368"
         }
       ],
       "best_platform": "polymarket",
       "best_outcome_name": "Lions",
-      "best_price": 0.49,
-      "best_odds": "+104",
-      "price_spread": 0.0,
+      "best_price": 0.51,
+      "best_odds": "-104",
+      "price_spread": 1.0,
       "arbitrage_opportunity": false,
       "arbitrage_percentage": null,
       "price_deltas": {},
       "market_type": "sports",
       "normalized_title": "lions vs. chiefs",
-      "last_updated": "2025-10-06T04:22:44.791542"
+      "last_updated": "2025-10-06T14:57:15.719357"
+    },
+    {
+      "question": "Bills vs. Falcons",
+      "markets": [
+        {
+          "platform": "polymarket",
+          "market_id": "0x626a49d9b82acaa9e86760c0cddad6a71aceefbef72f4f1c154ff8e358ae88c1",
+          "question": "Bills vs. Falcons",
+          "outcomes": [
+            {
+              "name": "Bills",
+              "price": 0.635,
+              "decimal_odds": 1.57,
+              "american_odds": "-173",
+              "best_bid": null,
+              "best_ask": null,
+              "volume": null
+            },
+            {
+              "name": "Falcons",
+              "price": 0.365,
+              "decimal_odds": 2.74,
+              "american_odds": "+173",
+              "best_bid": null,
+              "best_ask": null,
+              "volume": null
+            }
+          ],
+          "market_type": "sports",
+          "start_time": "2025-10-13T23:15:00+00:00",
+          "end_time": "2025-10-20T23:15:00+00:00",
+          "category": null,
+          "subcategory": null,
+          "sport": null,
+          "league": null,
+          "total_volume": 506.305302,
+          "liquidity": 16308.0584,
+          "is_active": true,
+          "is_closed": false,
+          "normalized_title": "bills vs. falcons",
+          "normalized_teams": [
+            "bills",
+            "falcons"
+          ],
+          "fetched_at": "2025-10-06T14:57:10.284757"
+        },
+        {
+          "platform": "kalshi",
+          "market_id": "KXNFLGAME-25OCT13BUFATL-BUF",
+          "question": "Buffalo at Atlanta Winner?",
+          "outcomes": [
+            {
+              "name": "Yes",
+              "price": 0.64,
+              "decimal_odds": 1.56,
+              "american_odds": "-177",
+              "best_bid": 0.64,
+              "best_ask": 0.66,
+              "volume": 15416
+            },
+            {
+              "name": "No",
+              "price": 0.34,
+              "decimal_odds": 2.94,
+              "american_odds": "+194",
+              "best_bid": 0.34,
+              "best_ask": 0.36,
+              "volume": 15416
+            }
+          ],
+          "market_type": "sports",
+          "start_time": "2025-10-14T02:15:00+00:00",
+          "end_time": "2025-10-27T23:15:00+00:00",
+          "category": "",
+          "subcategory": null,
+          "sport": null,
+          "league": null,
+          "total_volume": 15416,
+          "liquidity": 953627.21,
+          "is_active": false,
+          "is_closed": false,
+          "normalized_title": "buffalo at atlanta winner",
+          "normalized_teams": [],
+          "fetched_at": "2025-10-06T14:57:14.421308"
+        },
+        {
+          "platform": "kalshi",
+          "market_id": "KXNFLGAME-25OCT13BUFATL-ATL",
+          "question": "Buffalo at Atlanta Winner?",
+          "outcomes": [
+            {
+              "name": "Yes",
+              "price": 0.34,
+              "decimal_odds": 2.94,
+              "american_odds": "+194",
+              "best_bid": 0.34,
+              "best_ask": 0.35,
+              "volume": 4858
+            },
+            {
+              "name": "No",
+              "price": 0.65,
+              "decimal_odds": 1.54,
+              "american_odds": "-185",
+              "best_bid": 0.65,
+              "best_ask": 0.66,
+              "volume": 4858
+            }
+          ],
+          "market_type": "sports",
+          "start_time": "2025-10-14T02:15:00+00:00",
+          "end_time": "2025-10-27T23:15:00+00:00",
+          "category": "",
+          "subcategory": null,
+          "sport": null,
+          "league": null,
+          "total_volume": 4858,
+          "liquidity": 948586.65,
+          "is_active": false,
+          "is_closed": false,
+          "normalized_title": "buffalo at atlanta winner",
+          "normalized_teams": [],
+          "fetched_at": "2025-10-06T14:57:14.421328"
+        }
+      ],
+      "best_platform": "kalshi",
+      "best_outcome_name": "Yes",
+      "best_price": 0.64,
+      "best_odds": "-177",
+      "price_spread": 30.0,
+      "arbitrage_opportunity": false,
+      "arbitrage_percentage": null,
+      "price_deltas": {},
+      "market_type": "sports",
+      "normalized_title": "bills vs. falcons",
+      "last_updated": "2025-10-06T14:57:15.719360"
+    },
+    {
+      "question": "Bears vs. Commanders",
+      "markets": [
+        {
+          "platform": "polymarket",
+          "market_id": "0xb4bba8acb4a85c9f4ccd0eec6393e746c0176d271c2d0e52792968a05dd64b0c",
+          "question": "Bears vs. Commanders",
+          "outcomes": [
+            {
+              "name": "Bears",
+              "price": 0.345,
+              "decimal_odds": 2.9,
+              "american_odds": "+189",
+              "best_bid": null,
+              "best_ask": null,
+              "volume": null
+            },
+            {
+              "name": "Commanders",
+              "price": 0.655,
+              "decimal_odds": 1.53,
+              "american_odds": "-189",
+              "best_bid": null,
+              "best_ask": null,
+              "volume": null
+            }
+          ],
+          "market_type": "sports",
+          "start_time": "2025-10-14T00:15:00+00:00",
+          "end_time": "2025-10-21T00:15:00+00:00",
+          "category": null,
+          "subcategory": null,
+          "sport": null,
+          "league": null,
+          "total_volume": 962.363634,
+          "liquidity": 85906.6825,
+          "is_active": true,
+          "is_closed": false,
+          "normalized_title": "bears vs. commanders",
+          "normalized_teams": [
+            "bears",
+            "commanders"
+          ],
+          "fetched_at": "2025-10-06T14:57:10.284810"
+        },
+        {
+          "platform": "kalshi",
+          "market_id": "KXNFLGAME-25OCT13CHIWAS-WAS",
+          "question": "Chicago at Washington Winner?",
+          "outcomes": [
+            {
+              "name": "Yes",
+              "price": 0.64,
+              "decimal_odds": 1.56,
+              "american_odds": "-177",
+              "best_bid": 0.64,
+              "best_ask": 0.67,
+              "volume": 6649
+            },
+            {
+              "name": "No",
+              "price": 0.33,
+              "decimal_odds": 3.03,
+              "american_odds": "+203",
+              "best_bid": 0.33,
+              "best_ask": 0.36,
+              "volume": 6649
+            }
+          ],
+          "market_type": "sports",
+          "start_time": "2025-10-14T03:15:00+00:00",
+          "end_time": "2025-10-28T00:15:00+00:00",
+          "category": "",
+          "subcategory": null,
+          "sport": null,
+          "league": null,
+          "total_volume": 6649,
+          "liquidity": 953097.63,
+          "is_active": false,
+          "is_closed": false,
+          "normalized_title": "chicago at washington winner",
+          "normalized_teams": [],
+          "fetched_at": "2025-10-06T14:57:14.421236"
+        },
+        {
+          "platform": "kalshi",
+          "market_id": "KXNFLGAME-25OCT13CHIWAS-CHI",
+          "question": "Chicago at Washington Winner?",
+          "outcomes": [
+            {
+              "name": "Yes",
+              "price": 0.35,
+              "decimal_odds": 2.86,
+              "american_odds": "+185",
+              "best_bid": 0.35,
+              "best_ask": 0.36,
+              "volume": 18478
+            },
+            {
+              "name": "No",
+              "price": 0.64,
+              "decimal_odds": 1.56,
+              "american_odds": "-177",
+              "best_bid": 0.64,
+              "best_ask": 0.65,
+              "volume": 18478
+            }
+          ],
+          "market_type": "sports",
+          "start_time": "2025-10-14T03:15:00+00:00",
+          "end_time": "2025-10-28T00:15:00+00:00",
+          "category": "",
+          "subcategory": null,
+          "sport": null,
+          "league": null,
+          "total_volume": 18478,
+          "liquidity": 956300.95,
+          "is_active": false,
+          "is_closed": false,
+          "normalized_title": "chicago at washington winner",
+          "normalized_teams": [],
+          "fetched_at": "2025-10-06T14:57:14.421281"
+        }
+      ],
+      "best_platform": "kalshi",
+      "best_outcome_name": "Yes",
+      "best_price": 0.64,
+      "best_odds": "-177",
+      "price_spread": 29.5,
+      "arbitrage_opportunity": false,
+      "arbitrage_percentage": null,
+      "price_deltas": {},
+      "market_type": "sports",
+      "normalized_title": "bears vs. commanders",
+      "last_updated": "2025-10-06T14:57:15.719364"
     }
   ]
 }

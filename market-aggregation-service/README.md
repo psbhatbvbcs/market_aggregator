@@ -1,10 +1,10 @@
 # Market Aggregation Service
 
-A standalone service that aggregates prediction markets from Polymarket, Kalshi, and Limitless, comparing prices in real-time to find the best odds.
+A standalone service that aggregates prediction markets from Polymarket and Kalshi, comparing prices in real-time to find the best odds.
 
 ## Features
 
-- **Multi-Platform Support**: Aggregates markets from Polymarket, Kalshi, and Limitless
+- **Multi-Platform Support**: Aggregates markets from Polymarket and Kalshi
 - **Real-Time Price Comparison**: Updates every 5 seconds with delta tracking
 - **Smart Market Matching**: Fuzzy matching to identify similar markets across platforms
 - **Best Odds Detection**: Automatically identifies the platform with the best odds
@@ -20,13 +20,14 @@ pip install -r requirements.txt
 
 ## Configuration
 
-Create a `.env` file:
+Optional - Create a `.env` file for Kalshi authentication:
 
 ```
 KALSHI_API_KEY=your_kalshi_api_key
 KALSHI_PRIVATE_KEY_PATH=./rsa_key
-LIMITLESS_WALLET_ADDRESS=your_wallet_address
 ```
+
+Note: Most features work without authentication, but some Kalshi markets may require an API key.
 
 ## Usage
 
@@ -50,6 +51,68 @@ python nfl_comparison.py
 python compare_sport.py NFL
 python compare_sport.py NBA    # Add config in sports_config.py first
 ```
+
+### Politics Markets with Manual Mapping
+
+For politics markets (where wording differs significantly across platforms):
+
+**1. Search and find market IDs:**
+```bash
+python add_politics_mapping.py
+```
+
+**2. Add mappings to `market_mappings.py`:**
+```python
+"politics": [
+    {
+        "polymarket_id": "0xabc123...",
+        "kalshi_id": "KXPRES-2024-...",
+        "description": "2024 Presidential Winner"
+    },
+],
+```
+
+**3. Run comparison:**
+```bash
+python politics_comparison.py
+```
+
+### Continuous Tracking (Every 5 Seconds)
+
+Track markets continuously with MongoDB and Excel export:
+
+**Prerequisites:**
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Start MongoDB (if not running)
+mongod
+```
+
+**Start Tracker:**
+```bash
+# Default: 5 second interval, MongoDB + Excel enabled
+python politics_tracker.py
+
+# Custom interval (10 seconds)
+python politics_tracker.py --interval 10
+
+# Disable MongoDB (Excel only)
+python politics_tracker.py --no-db
+
+# Disable Excel (MongoDB only)
+python politics_tracker.py --no-excel
+
+# Run for limited iterations (e.g., 10)
+python politics_tracker.py --max-iterations 10
+```
+
+**Features:**
+- 📊 **Excel Export**: Creates timestamped Excel files with multiple sheets (one per market)
+- 💾 **MongoDB**: Stores full API responses, comparisons, and price history
+- ⏱️ **Real-time**: Updates every 5 seconds (configurable)
+- 📈 **Price History**: Track price changes over time
 
 **Run Example Demo:**
 ```bash

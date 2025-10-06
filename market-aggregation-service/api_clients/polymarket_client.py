@@ -23,6 +23,60 @@ class PolymarketClient:
     def __init__(self):
         self.gamma_api_base = "https://gamma-api.polymarket.com"
         self.clob_api_base = "https://clob.polymarket.com"
+    
+    def fetch_market_by_id(self, condition_id: str) -> Optional[UnifiedMarket]:
+        """
+        Fetch a specific market by condition ID with detailed volume/liquidity data
+        
+        Args:
+            condition_id: The condition ID (e.g., 0x576ddfc4a6f4641d33af22a70c5c533f6ff52d1b0bf3bf127ebdc30c7f573b85)
+        
+        Returns:
+            UnifiedMarket or None if not found
+        """
+        try:
+            # First, get the basic market data
+            url = f"https://clob.polymarket.com/markets/{condition_id}"
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
+            
+            market_data = response.json()
+            unified = self._convert_to_unified(market_data)
+            
+            if not unified:
+                return None
+            
+            # Now fetch detailed volume/liquidity from the slug endpoint
+            slug = market_data.get('market_slug')
+            if slug:
+                try:
+                    gamma_url = f"https://gamma-api.polymarket.com/events/slug/{slug}"
+                    gamma_response = requests.get(gamma_url, timeout=10)
+                    gamma_response.raise_for_status()
+                    gamma_data = gamma_response.json()
+                    
+                    # Update volume and liquidity from gamma API
+                    unified.total_volume = gamma_data.get('volume', 0)
+                    unified.liquidity = gamma_data.get('liquidity', 0)
+                    
+                    # Store additional stats in raw_data
+                    unified.raw_data['volume_24hr'] = gamma_data.get('volume24hr', 0)
+                    unified.raw_data['volume_1wk'] = gamma_data.get('volume1wk', 0)
+                    unified.raw_data['volume_1mo'] = gamma_data.get('volume1mo', 0)
+                    unified.raw_data['open_interest'] = gamma_data.get('openInterest', 0)
+                    
+                    print(f"Polymarket: Fetched market '{unified.question}' (Vol: ${unified.total_volume:.0f}, Liq: ${unified.liquidity:.0f})")
+                except Exception as e:
+                    print(f"  ⚠️  Could not fetch detailed stats: {e}")
+                    print(f"Polymarket: Fetched market '{unified.question}'")
+            else:
+                print(f"Polymarket: Fetched market '{unified.question}'")
+            
+            return unified
+            
+        except Exception as e:
+            print(f"Error fetching Polymarket market {condition_id[:20]}...: {e}")
+            return None
         
     def fetch_markets(
         self,

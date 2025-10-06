@@ -19,7 +19,12 @@ from dateutil import parser as date_parser
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from api_clients.polymarket_client import PolymarketClient
 from api_clients.kalshi_client import KalshiClient
+from api_clients.odds_api_client import OddsAPIClient
 from aggregator import MarketAggregator
+from simple_excel_exporter import SimpleMarketExporter
+from db_manager import MarketDBManager
+from nfl_teams import normalize_nfl_team_name
+from odds_api_exporter import OddsAPIExporter
 
 
 def filter_future_markets(markets):
@@ -183,6 +188,58 @@ def fetch_nfl_game_markets():
     return all_markets
 
 
+def fetch_traditional_sportsbook_odds():
+    """Fetch NFL odds from traditional sportsbooks via The Odds API"""
+    
+    print("\n" + "=" * 70)
+    print("[BONUS] Fetching Traditional Sportsbook Odds")
+    print("=" * 70 + "\n")
+    
+    # API key from user's request
+    api_key = "db06be1d18367c369444aa40d6a25499"
+    
+    try:
+        client = OddsAPIClient(api_key)
+        games = client.fetch_nfl_odds()
+        
+        if not games:
+            print("⚠️  No traditional sportsbook odds found")
+            return {}
+        
+        # Process and find best odds for each game
+        best_odds_by_game = {}
+        
+        for game in games:
+            game_key = f"{game['away_team']} @ {game['home_team']}"
+            best_odds = client.get_best_odds_for_game(game)
+            all_odds = client.get_all_odds_for_game(game)
+            
+            best_odds_by_game[game_key] = {
+                'best_odds': best_odds,
+                'all_odds': all_odds,
+                'raw_game': game
+            }
+        
+        print(f"✅ Found best odds for {len(best_odds_by_game)} games across {games[0]['bookmakers'].__len__() if games else 0} bookmakers")
+        
+        # Show sample
+        if best_odds_by_game:
+            print("\nSample best odds:")
+            for i, (game_key, data) in enumerate(list(best_odds_by_game.items())[:3]):
+                best = data['best_odds']
+                print(f"\n  {game_key}")
+                print(f"    {best['home_team']}: {best['best_home_odds']:.2f} @ {best['best_home_platform']}")
+                print(f"    {best['away_team']}: {best['best_away_odds']:.2f} @ {best['best_away_platform']}")
+        
+        return best_odds_by_game
+        
+    except Exception as e:
+        print(f"❌ Error fetching traditional sportsbook odds: {e}")
+        import traceback
+        traceback.print_exc()
+        return {}
+
+
 def compare_markets(markets):
     """Compare NFL game markets across platforms"""
     
@@ -294,6 +351,197 @@ def export_results(markets, comparisons):
     print("=" * 70)
 
 
+def export_to_excel(comparisons):
+    """Export comparisons to Excel files (one per game)"""
+    if not comparisons:
+        return
+    
+    exporter = SimpleMarketExporter("nfl_tracking")
+    
+    for comp in comparisons:
+        # Get polymarket and ALL kalshi markets
+        poly_market = None
+        kalshi_markets = []
+        
+        for market in comp.markets:
+            if market.platform.value == 'polymarket':
+                poly_market = market
+            elif market.platform.value == 'kalshi':
+                kalshi_markets.append(market)
+        
+        # Find the BEST matching Kalshi market based on team names
+        # (We only want ONE Kalshi market that best represents the comparison)
+        if poly_market and kalshi_markets:
+            best_kalshi_market = None
+            
+            # If there's only one Kalshi market, use it
+            if len(kalshi_markets) == 1:
+                best_kalshi_market = kalshi_markets[0]
+            else:
+                # Find the Kalshi market for the favorite (higher probability team on Polymarket)
+                poly_outcomes = {o.name: o.price for o in poly_market.outcomes}
+                favorite_team = max(poly_outcomes.items(), key=lambda x: x[1])[0]
+                
+                # Match the favorite team with a Kalshi market
+                normalized_favorite = normalize_nfl_team_name(favorite_team)
+                for kalshi_market in kalshi_markets:
+                    kalshi_team = kalshi_market.raw_data.get('yes_sub_title', '')
+                    normalized_kalshi_team = normalize_nfl_team_name(kalshi_team)
+                    if normalized_kalshi_team == normalized_favorite:
+                        best_kalshi_market = kalshi_market
+                        break
+                
+                # Fallback to first market if no match found
+                if not best_kalshi_market:
+                    best_kalshi_market = kalshi_markets[0]
+            
+            if best_kalshi_market:
+                # Calculate the specific spread for this Kalshi market
+                kalshi_yes_price = next((o.price for o in best_kalshi_market.outcomes if 'yes' in o.name.lower()), None)
+                kalshi_team_raw = best_kalshi_market.raw_data.get('yes_sub_title', '')
+                
+                # Normalize team names and find matching Polymarket price
+                normalized_kalshi_team = normalize_nfl_team_name(kalshi_team_raw)
+                poly_team_price = None
+                for outcome in poly_market.outcomes:
+                    normalized_outcome = normalize_nfl_team_name(outcome.name)
+                    if normalized_outcome == normalized_kalshi_team:
+                        poly_team_price = outcome.price
+                        break
+                
+                # Calculate spread
+                if poly_team_price is not None and kalshi_yes_price is not None:
+                    specific_spread = abs((poly_team_price * 100) - (kalshi_yes_price * 100))
+                else:
+                    specific_spread = comp.price_spread
+                
+                exporter.add_comparison(
+                    market_title=comp.question,
+                    poly_id=poly_market.market_id,
+                    kalshi_id=best_kalshi_market.market_id,
+                    poly_data=poly_market.to_dict(),
+                    kalshi_data=best_kalshi_market.to_dict(),
+                    price_spread=specific_spread  # Pass the pre-calculated spread
+                )
+    
+    exporter.export()
+
+
+def save_to_mongodb(comparisons, use_db=True):
+    """Save comparisons to MongoDB"""
+    if not comparisons or not use_db:
+        return
+    
+    try:
+        db = MarketDBManager()
+        
+        for comp in comparisons:
+            # Get polymarket and ALL kalshi markets
+            poly_market = None
+            kalshi_markets = []
+            
+            for market in comp.markets:
+                if market.platform.value == 'polymarket':
+                    poly_market = market
+                elif market.platform.value == 'kalshi':
+                    kalshi_markets.append(market)
+            
+            # Find the BEST matching Kalshi market (same logic as Excel export)
+            if poly_market and kalshi_markets:
+                best_kalshi_market = None
+                
+                # If there's only one Kalshi market, use it
+                if len(kalshi_markets) == 1:
+                    best_kalshi_market = kalshi_markets[0]
+                else:
+                    # Find the Kalshi market for the favorite (higher probability team on Polymarket)
+                    poly_outcomes = {o.name: o.price for o in poly_market.outcomes}
+                    favorite_team = max(poly_outcomes.items(), key=lambda x: x[1])[0]
+                    
+                    # Match the favorite team with a Kalshi market
+                    normalized_favorite = normalize_nfl_team_name(favorite_team)
+                    for kalshi_market in kalshi_markets:
+                        kalshi_team = kalshi_market.raw_data.get('yes_sub_title', '')
+                        normalized_kalshi_team = normalize_nfl_team_name(kalshi_team)
+                        if normalized_kalshi_team == normalized_favorite:
+                            best_kalshi_market = kalshi_market
+                            break
+                    
+                    # Fallback to first market if no match found
+                    if not best_kalshi_market:
+                        best_kalshi_market = kalshi_markets[0]
+                
+                if best_kalshi_market:
+                    # Calculate actual spread for THIS specific Kalshi market
+                    kalshi_yes_price = next((o.price for o in best_kalshi_market.outcomes if 'yes' in o.name.lower()), None)
+                    kalshi_team_raw = best_kalshi_market.raw_data.get('yes_sub_title', '')
+                    
+                    # Normalize team names and find matching Polymarket price
+                    normalized_kalshi_team = normalize_nfl_team_name(kalshi_team_raw)
+                    poly_team_price = None
+                    for outcome in poly_market.outcomes:
+                        normalized_outcome = normalize_nfl_team_name(outcome.name)
+                        if normalized_outcome == normalized_kalshi_team:
+                            poly_team_price = outcome.price
+                            break
+                    
+                    # Calculate spread for this specific comparison
+                    if poly_team_price is not None and kalshi_yes_price is not None:
+                        specific_spread = abs((poly_team_price * 100) - (kalshi_yes_price * 100))
+                    else:
+                        specific_spread = comp.price_spread
+                    
+                    # Extract comparison data
+                    comparison_data = {
+                        'price_spread': specific_spread,
+                        'best_platform': comp.best_platform.value,
+                        'best_odds': comp.best_odds,
+                        'arbitrage_opportunity': comp.arbitrage_opportunity,
+                        'kalshi_team': kalshi_team_raw,
+                    }
+                    
+                    db.save_comparison(
+                        poly_id=poly_market.market_id,
+                        kalshi_id=best_kalshi_market.market_id,
+                        market_title=comp.question,
+                        polymarket_response=poly_market.raw_data,
+                        kalshi_response=best_kalshi_market.raw_data,
+                        comparison_data=comparison_data,
+                        category="nfl"
+                    )
+        
+        db.close()
+        print("✅ Saved to MongoDB")
+        
+    except Exception as e:
+        print(f"⚠️  MongoDB save failed: {e}")
+        print("   (Make sure MongoDB is running: mongod)")
+
+
+def export_traditional_odds(traditional_odds):
+    """Export traditional sportsbook odds to separate CSVs (one per game)"""
+    if not traditional_odds:
+        print("\n⚠️  No traditional sportsbook odds to export")
+        return
+    
+    try:
+        exporter = OddsAPIExporter("traditional_odds_tracking")
+        
+        for game_key, odds_data in traditional_odds.items():
+            exporter.add_game(
+                game_data=odds_data['raw_game'],
+                all_odds=odds_data['all_odds'],
+                best_odds=odds_data['best_odds']
+            )
+        
+        exporter.export()
+        
+    except Exception as e:
+        print(f"❌ Error exporting traditional odds: {e}")
+        import traceback
+        traceback.print_exc()
+
+
 def main():
     """Main execution"""
     
@@ -301,11 +549,23 @@ def main():
         # Fetch markets
         markets = fetch_nfl_game_markets()
         
+        # Fetch traditional sportsbook odds
+        traditional_odds = fetch_traditional_sportsbook_odds()
+        
         # Compare
         comparisons = compare_markets(markets)
         
-        # Export
+        # Export to JSON
         export_results(markets, comparisons)
+        
+        # Export to Excel
+        export_to_excel(comparisons)
+        
+        # Export traditional sportsbook odds to separate CSV
+        export_traditional_odds(traditional_odds)
+        
+        # Save to MongoDB
+        save_to_mongodb(comparisons, use_db=True)
         
         # Summary
         print("\n" + "=" * 70)

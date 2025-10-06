@@ -14,8 +14,8 @@ from models import (
 )
 from api_clients.polymarket_client import PolymarketClient
 from api_clients.kalshi_client import KalshiClient
-from api_clients.limitless_client import LimitlessClient
 from nfl_teams import extract_nfl_teams, are_same_nfl_teams
+from market_mappings import get_all_mappings_for_category, find_matching_market_ids
 
 class MarketAggregator:
     """Aggregates and matches markets from multiple platforms"""
@@ -30,7 +30,6 @@ class MarketAggregator:
     def __init__(self):
         self.polymarket_client = PolymarketClient()
         self.kalshi_client = KalshiClient()
-        self.limitless_client = LimitlessClient()
         
         # Cache for market data
         self.all_markets: List[UnifiedMarket] = []
@@ -41,10 +40,9 @@ class MarketAggregator:
         self,
         include_polymarket: bool = True,
         include_kalshi: bool = True,
-        include_limitless: bool = True,
         limit_per_platform: int = 100
     ) -> List[UnifiedMarket]:
-        """Fetch markets from all enabled platforms"""
+        """Fetch markets from all enabled platforms (Polymarket and Kalshi)"""
         all_markets = []
         
         print("=" * 60)
@@ -78,25 +76,61 @@ class MarketAggregator:
             except Exception as e:
                 print(f"✗ Error fetching Kalshi markets: {e}")
         
-        # Fetch from Limitless
-        if include_limitless:
-            print("\n[3/3] Fetching from Limitless...")
-            try:
-                limitless_markets = self.limitless_client.fetch_markets(
-                    chain_id=2,
-                    limit=limit_per_platform
-                )
-                all_markets.extend(limitless_markets)
-                print(f"✓ Limitless: {len(limitless_markets)} markets")
-            except Exception as e:
-                print(f"✗ Error fetching Limitless markets: {e}")
-        
         print("\n" + "=" * 60)
         print(f"TOTAL MARKETS FETCHED: {len(all_markets)}")
         print("=" * 60)
         
         self.all_markets = all_markets
         return all_markets
+    
+    def _match_using_manual_mappings(self) -> List[List[UnifiedMarket]]:
+        """
+        Match markets using manual mappings from market_mappings.py
+        Returns list of matched market groups
+        """
+        from market_mappings import MANUAL_MAPPINGS
+        
+        matched_groups = []
+        
+        # Create lookup dictionaries for quick access
+        markets_by_platform_id = {}
+        for market in self.all_markets:
+            platform_key = f"{market.platform.value}_id"
+            markets_by_platform_id[(platform_key, market.market_id)] = market
+        
+        # Process each category
+        for category, mappings in MANUAL_MAPPINGS.items():
+            if not mappings:
+                continue
+            
+            print(f"\nChecking manual mappings for {category}...")
+            
+            for mapping in mappings:
+                group = []
+                
+                # Try to find Polymarket market
+                poly_id = mapping.get("polymarket_id")
+                if poly_id:
+                    poly_market = markets_by_platform_id.get(("polymarket_id", poly_id))
+                    if poly_market:
+                        group.append(poly_market)
+                
+                # Try to find Kalshi market
+                kalshi_id = mapping.get("kalshi_id")
+                if kalshi_id:
+                    kalshi_market = markets_by_platform_id.get(("kalshi_id", kalshi_id))
+                    if kalshi_market:
+                        group.append(kalshi_market)
+                
+                
+                # Only add if we found at least 2 markets from different platforms
+                if len(group) >= 2:
+                    platforms = [m.platform.value for m in group]
+                    description = mapping.get("description", group[0].question[:50])
+                    print(f"  ✓ Matched (manual): {description}... across {platforms}")
+                    matched_groups.append(group)
+        
+        return matched_groups
     
     def match_markets(self) -> List[List[UnifiedMarket]]:
         """
@@ -120,6 +154,16 @@ class MarketAggregator:
         
         matched_groups = []
         processed_market_ids = set()
+        
+        # First, try manual mappings for all categories
+        manual_matches = self._match_using_manual_mappings()
+        if manual_matches:
+            print(f"\n✅ Found {len(manual_matches)} manually mapped market groups")
+            matched_groups.extend(manual_matches)
+            # Mark these as processed
+            for group in manual_matches:
+                for market in group:
+                    processed_market_ids.add(market.market_id)
         
         for market_type, markets in markets_by_type.items():
             print(f"\nMatching {market_type.value} markets ({len(markets)} total)...")
