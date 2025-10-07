@@ -1,283 +1,537 @@
 """
-REST API Server for querying aggregated market data
+FastAPI Server for Market Aggregator Dashboard
+
+Provides real-time market comparison data from multiple platforms:
+- NFL: Polymarket + Kalshi comparisons
+- NFL: Traditional sportsbooks odds (via Odds API)
+- Politics: Polymarket + Kalshi comparisons
 """
-from fastapi import FastAPI, HTTPException, Query
+
+from fastapi import FastAPI, HTTPException
+from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List, Optional
-from enum import Enum
-import uvicorn
+from datetime import datetime, timedelta, timezone
+from typing import List, Dict, Any, Optional
 import sys
 import os
+from dateutil import parser as date_parser
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from models import Platform, MarketType
+
+from api_clients.polymarket_client import PolymarketClient
+from api_clients.kalshi_client import KalshiClient
+from api_clients.odds_api_client import OddsAPIClient
 from aggregator import MarketAggregator
-from price_tracker import PriceTracker
+from market_mappings import MANUAL_MAPPINGS
+from nfl_teams import normalize_nfl_team_name
 
-# Initialize FastAPI app
-app = FastAPI(
-    title="Market Aggregation API",
-    description="Aggregates and compares prediction markets from Polymarket, Kalshi, and Limitless",
-    version="1.0.0"
-)
+app = FastAPI(title="Market Aggregator API", version="1.0.0")
 
-# Add CORS middleware
+# CORS middleware for Next.js dashboard
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000", "http://localhost:3001"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Global instances
-aggregator = MarketAggregator()
-tracker = PriceTracker(update_interval=5)
+# Initialize clients
+poly_client = PolymarketClient()
+kalshi_client = KalshiClient()
+odds_api_key = "db06be1d18367c369444aa40d6a25499"
+odds_client = OddsAPIClient(odds_api_key)
 
-# Track initialization
-initialized = False
 
-
-@app.on_event("startup")
-async def startup_event():
-    """Initialize data on startup"""
-    global initialized
-    print("🚀 Starting Market Aggregation API...")
-    print("📊 Fetching initial market data...")
+def filter_future_markets(markets):
+    """Filter markets by future gameStartTime and spread <= 0.05"""
+    if not markets:
+        return []
     
-    # Fetch initial data
-    aggregator.fetch_all_markets(
-        include_polymarket=True,
-        include_kalshi=True,
-        include_limitless=True,
-        limit_per_platform=100
-    )
-    aggregator.match_markets()
-    aggregator.create_comparisons()
+    future_markets = []
+    now = datetime.now(timezone.utc) - timedelta(hours=2)
     
-    initialized = True
-    print("✅ API Server Ready!")
+    for market in markets:
+        game_start_time_str = market.raw_data.get("gameStartTime")
+        spread = market.raw_data.get('spread', 0.0)
+        
+        if spread <= 0.05 and game_start_time_str:
+            try:
+                game_start_time = date_parser.parse(game_start_time_str)
+                if game_start_time.tzinfo is None:
+                    game_start_time = game_start_time.replace(tzinfo=timezone.utc)
+                
+                if game_start_time > now:
+                    future_markets.append(market)
+            except Exception:
+                continue
+    
+    return future_markets
+
+
+def filter_correct_markets(markets):
+    """Filter to only include markets with exactly 2 outcomes"""
+    correct_markets = []
+    
+    for market in markets:
+        try:
+            outcomes = market.outcomes
+            if len(outcomes) == 2:
+                correct_markets.append(market)
+        except Exception:
+            continue
+    
+    return correct_markets
+async def push_periodic(websocket: WebSocket, fetch_func, interval_seconds: int = 5):
+    """Utility: periodically send JSON from fetch_func to a websocket."""
+    await websocket.accept()
+    try:
+        while True:
+            data = await fetch_func()
+            await websocket.send_json(data)
+            # simple sleep without blocking
+            import asyncio
+            await asyncio.sleep(interval_seconds)
+    except WebSocketDisconnect:
+        return
+    except Exception as e:
+        try:
+            await websocket.send_json({"error": str(e)})
+        except Exception:
+            pass
+        return
+
 
 
 @app.get("/")
 async def root():
     """Root endpoint"""
     return {
-        "message": "Market Aggregation API",
+        "message": "Market Aggregator API",
         "version": "1.0.0",
         "endpoints": {
-            "markets": "/markets",
-            "comparisons": "/comparisons",
-            "best_odds": "/comparisons/best-odds",
-            "arbitrage": "/comparisons/arbitrage",
-            "stats": "/stats",
-            "platforms": "/platforms"
+            "/nfl/crypto": "NFL markets from Polymarket + Kalshi",
+            "/nfl/traditional": "NFL odds from traditional sportsbooks",
+            "/politics": "Politics markets from Polymarket + Kalshi"
         }
     }
 
 
-@app.get("/stats")
-async def get_stats():
-    """Get statistics about aggregated data"""
-    if not initialized:
-        raise HTTPException(status_code=503, detail="Service initializing...")
-    
-    # Count by platform
-    platform_counts = {}
-    for market in aggregator.all_markets:
-        platform = market.platform.value
-        platform_counts[platform] = platform_counts.get(platform, 0) + 1
-    
-    # Count by type
-    type_counts = {}
-    for market in aggregator.all_markets:
-        mtype = market.market_type.value
-        type_counts[mtype] = type_counts.get(mtype, 0) + 1
-    
-    return {
-        "total_markets": len(aggregator.all_markets),
-        "matched_groups": len(aggregator.market_groups),
-        "comparisons": len(aggregator.comparisons),
-        "arbitrage_opportunities": len(aggregator.get_arbitrage_opportunities()),
-        "by_platform": platform_counts,
-        "by_type": type_counts,
-        "last_updated": aggregator.all_markets[0].fetched_at.isoformat() if aggregator.all_markets else None
-    }
-
-
-@app.get("/markets")
-async def get_markets(
-    platform: Optional[str] = Query(None, description="Filter by platform (polymarket, kalshi, limitless)"),
-    market_type: Optional[str] = Query(None, description="Filter by type (sports, politics, crypto, etc)"),
-    limit: int = Query(50, ge=1, le=500, description="Maximum number of markets to return")
-):
-    """Get all markets with optional filtering"""
-    if not initialized:
-        raise HTTPException(status_code=503, detail="Service initializing...")
-    
-    markets = aggregator.all_markets
-    
-    # Apply filters
-    if platform:
-        try:
-            platform_enum = Platform(platform.lower())
-            markets = [m for m in markets if m.platform == platform_enum]
-        except ValueError:
-            raise HTTPException(status_code=400, detail=f"Invalid platform: {platform}")
-    
-    if market_type:
-        try:
-            type_enum = MarketType(market_type.lower())
-            markets = [m for m in markets if m.market_type == type_enum]
-        except ValueError:
-            raise HTTPException(status_code=400, detail=f"Invalid market type: {market_type}")
-    
-    # Limit results
-    markets = markets[:limit]
-    
-    return {
-        "count": len(markets),
-        "markets": [m.to_dict() for m in markets]
-    }
-
-
-@app.get("/markets/{market_id}")
-async def get_market(market_id: str):
-    """Get a specific market by ID"""
-    if not initialized:
-        raise HTTPException(status_code=503, detail="Service initializing...")
-    
-    for market in aggregator.all_markets:
-        if market.market_id == market_id:
-            return market.to_dict()
-    
-    raise HTTPException(status_code=404, detail="Market not found")
-
-
-@app.get("/comparisons")
-async def get_comparisons(
-    market_type: Optional[str] = Query(None, description="Filter by type (sports, politics, crypto, etc)"),
-    min_spread: float = Query(0.0, ge=0.0, description="Minimum price spread percentage"),
-    limit: int = Query(50, ge=1, le=500, description="Maximum number of comparisons")
-):
-    """Get market comparisons"""
-    if not initialized:
-        raise HTTPException(status_code=503, detail="Service initializing...")
-    
-    comparisons = aggregator.comparisons
-    
-    # Apply filters
-    if market_type:
-        try:
-            type_enum = MarketType(market_type.lower())
-            comparisons = [c for c in comparisons if c.market_type == type_enum]
-        except ValueError:
-            raise HTTPException(status_code=400, detail=f"Invalid market type: {market_type}")
-    
-    if min_spread > 0:
-        comparisons = [c for c in comparisons if c.price_spread >= min_spread]
-    
-    # Sort by spread (best opportunities first)
-    comparisons = sorted(comparisons, key=lambda c: c.price_spread, reverse=True)
-    
-    # Limit results
-    comparisons = comparisons[:limit]
-    
-    return {
-        "count": len(comparisons),
-        "comparisons": [c.to_dict() for c in comparisons]
-    }
-
-
-@app.get("/comparisons/best-odds")
-async def get_best_odds(
-    limit: int = Query(20, ge=1, le=100, description="Number of markets to return")
-):
-    """Get markets with the best price differentials"""
-    if not initialized:
-        raise HTTPException(status_code=503, detail="Service initializing...")
-    
-    best_odds = aggregator.get_best_odds_markets(limit=limit)
-    
-    return {
-        "count": len(best_odds),
-        "markets": [c.to_dict() for c in best_odds]
-    }
-
-
-@app.get("/comparisons/arbitrage")
-async def get_arbitrage():
-    """Get markets with arbitrage opportunities"""
-    if not initialized:
-        raise HTTPException(status_code=503, detail="Service initializing...")
-    
-    arbitrage = aggregator.get_arbitrage_opportunities()
-    
-    return {
-        "count": len(arbitrage),
-        "opportunities": [c.to_dict() for c in arbitrage]
-    }
-
-
-@app.get("/platforms")
-async def get_platforms():
-    """Get list of supported platforms"""
-    return {
-        "platforms": [
-            {
-                "value": "polymarket",
-                "name": "Polymarket",
-                "description": "Decentralized prediction market"
-            },
-            {
-                "value": "kalshi",
-                "name": "Kalshi",
-                "description": "CFTC-regulated event contracts"
-            },
-            {
-                "value": "limitless",
-                "name": "Limitless Exchange",
-                "description": "Prediction market on Base"
+@app.get("/nfl/crypto")
+async def get_nfl_crypto_markets():
+    """
+    Get NFL market comparisons from Polymarket and Kalshi
+    """
+    try:
+        all_markets = []
+        
+        # Fetch from Polymarket
+        nfl_date = "2025-08-07T00:00:00Z"
+        polymarket_markets = poly_client.fetch_markets(
+            limit=1000,
+            closed=False,
+            active=True,
+            tag_id=450,
+            start_date_min=nfl_date
+        )
+        
+        # Apply filtering
+        future_markets = filter_future_markets(polymarket_markets)
+        game_markets = filter_correct_markets(future_markets)
+        all_markets.extend(game_markets)
+        
+        # Fetch from Kalshi
+        kalshi_markets = kalshi_client.fetch_markets(
+            series_ticker="KXNFLGAME",
+            status="open",
+            limit=200
+        )
+        all_markets.extend(kalshi_markets)
+        
+        # Match markets
+        aggregator = MarketAggregator()
+        aggregator.all_markets = all_markets
+        matched_groups = aggregator.match_markets()
+        
+        if not matched_groups:
+            return {
+                "comparisons": [],
+                "summary": {
+                    "total_comparisons": 0,
+                    "polymarket_markets": len(game_markets),
+                    "kalshi_markets": len(kalshi_markets)
+                }
             }
-        ]
-    }
+        
+        # Create comparisons
+        comparisons = aggregator.create_comparisons()
+        
+        # Format response
+        comparison_data = []
+        for comp in comparisons:
+            poly_market = None
+            kalshi_markets_list = []
+            
+            for market in comp.markets:
+                if market.platform.value == 'polymarket':
+                    poly_market = market
+                elif market.platform.value == 'kalshi':
+                    kalshi_markets_list.append(market)
+            
+            # Find best Kalshi market match
+            best_kalshi_market = None
+            if poly_market and kalshi_markets_list:
+                if len(kalshi_markets_list) == 1:
+                    best_kalshi_market = kalshi_markets_list[0]
+                else:
+                    poly_outcomes = {o.name: o.price for o in poly_market.outcomes}
+                    favorite_team = max(poly_outcomes.items(), key=lambda x: x[1])[0]
+                    normalized_favorite = normalize_nfl_team_name(favorite_team)
+                    
+                    for kalshi_market in kalshi_markets_list:
+                        kalshi_team = kalshi_market.raw_data.get('yes_sub_title', '')
+                        normalized_kalshi_team = normalize_nfl_team_name(kalshi_team)
+                        if normalized_kalshi_team == normalized_favorite:
+                            best_kalshi_market = kalshi_market
+                            break
+                    
+                    if not best_kalshi_market:
+                        best_kalshi_market = kalshi_markets_list[0]
+            
+            # Calculate specific spread
+            specific_spread = comp.price_spread
+            if poly_market and best_kalshi_market:
+                kalshi_yes_price = next((o.price for o in best_kalshi_market.outcomes if 'yes' in o.name.lower()), None)
+                kalshi_team_raw = best_kalshi_market.raw_data.get('yes_sub_title', '')
+                normalized_kalshi_team = normalize_nfl_team_name(kalshi_team_raw)
+                
+                poly_team_price = None
+                for outcome in poly_market.outcomes:
+                    normalized_outcome = normalize_nfl_team_name(outcome.name)
+                    if normalized_outcome == normalized_kalshi_team:
+                        poly_team_price = outcome.price
+                        break
+                
+                if poly_team_price is not None and kalshi_yes_price is not None:
+                    specific_spread = abs((poly_team_price * 100) - (kalshi_yes_price * 100))
+            
+            # Build per-team Kalshi structure (two separate markets: team1 yes/no, team2 yes/no)
+            kalshi_by_team = []
+            if kalshi_markets_list:
+                # Determine team names from Polymarket outcomes when possible
+                team_names = []
+                if poly_market and poly_market.outcomes and len(poly_market.outcomes) == 2:
+                    team_names = [o.name for o in poly_market.outcomes]
+                
+                # Map normalized team name -> kalshi market
+                norm_to_kalshi = {}
+                for km in kalshi_markets_list:
+                    team_raw = km.raw_data.get('yes_sub_title', '') or km.raw_data.get('subtitle', '')
+                    norm = normalize_nfl_team_name(team_raw)
+                    if norm:
+                        norm_to_kalshi[norm] = km
+                
+                # Try to return exactly two entries in the same order as Polymarket teams when available
+                ordered_norms = []
+                if team_names:
+                    for t in team_names:
+                        ordered_norms.append(normalize_nfl_team_name(t))
+                else:
+                    ordered_norms = list(norm_to_kalshi.keys())[:2]
+                
+                for norm in ordered_norms:
+                    km = norm_to_kalshi.get(norm)
+                    if not km:
+                        continue
+                    yes_out = next(({
+                        'name': o.name,
+                        'price': o.price,
+                        'american_odds': o.american_odds
+                    } for o in km.outcomes if 'yes' in o.name.lower()), None)
+                    no_out = next(({
+                        'name': o.name,
+                        'price': o.price,
+                        'american_odds': o.american_odds
+                    } for o in km.outcomes if 'no' in o.name.lower()), None)
+                    kalshi_by_team.append({
+                        'team_normalized': norm,
+                        'team_display': next((t for t in team_names if normalize_nfl_team_name(t) == norm), km.raw_data.get('yes_sub_title', '')),
+                        'market_id': km.market_id,
+                        'volume': km.total_volume,
+                        'liquidity': km.liquidity,
+                        'start_time': km.start_time.isoformat() if km.start_time else None,
+                        'yes': yes_out,
+                        'no': no_out
+                    })
+            
+            # Compute best per-team among: Polymarket(team), Kalshi(team YES), Opponent NO (from the other Kalshi market)
+            per_team_best = []
+            if poly_market and len(poly_market.outcomes) == 2 and len(kalshi_by_team) >= 1:
+                # Build dicts for quick lookup
+                poly_data_by_team = {normalize_nfl_team_name(o.name): {'price': o.price, 'american_odds': o.american_odds} for o in poly_market.outcomes}
+                kalshi_data_by_team = {k['team_normalized']: {
+                    'yes': {'price': k['yes']['price'], 'american_odds': k['yes']['american_odds']} if k.get('yes') else None,
+                    'no': {'price': k['no']['price'], 'american_odds': k['no']['american_odds']} if k.get('no') else None
+                } for k in kalshi_by_team}
+                # For each team, competitor is the other team if present
+                for idx, kteam in enumerate(kalshi_by_team):
+                    team_norm = kteam['team_normalized']
+                    # Opponent
+                    opp_norm = None
+                    if len(kalshi_by_team) == 2:
+                        opp_norm = kalshi_by_team[1 - idx]['team_normalized']
+                    
+                    candidates = []
+                    # Poly candidate (team win)
+                    if team_norm in poly_data_by_team:
+                        pd = poly_data_by_team[team_norm]
+                        candidates.append(('polymarket', 'polymarket_team', pd['price'], pd['american_odds']))
+                    # Kalshi team YES
+                    yes_d = kalshi_data_by_team.get(team_norm, {}).get('yes')
+                    if yes_d is not None:
+                        candidates.append(('kalshi', 'kalshi_yes', yes_d['price'], yes_d['american_odds']))
+                    # Opponent NO (equivalent to team win)
+                    if opp_norm and kalshi_data_by_team.get(opp_norm, {}).get('no') is not None:
+                        no_d = kalshi_data_by_team[opp_norm]['no']
+                        candidates.append(('kalshi', 'opponent_no', no_d['price'], no_d['american_odds']))
+                    
+                    if candidates:
+                        # Select the lowest implied probability (better payout)
+                        best = min(candidates, key=lambda x: x[2])
+                        per_team_best.append({
+                            'team_normalized': team_norm,
+                            'team_display': kteam['team_display'],
+                            'best_platform': best[0],
+                            'best_source': best[1],
+                            'best_price': best[2],
+                            'best_american_odds': best[3]
+                        })
+            
+            comparison_item = {
+                "title": comp.question,
+                "price_spread": specific_spread,
+                "best_platform": comp.best_platform.value,
+                "arbitrage_opportunity": comp.arbitrage_opportunity,
+                "kalshi_by_team": kalshi_by_team,
+                "per_team_best": per_team_best,
+                "polymarket": {
+                    "market_id": poly_market.market_id if poly_market else None,
+                    "outcomes": [
+                        {
+                            "name": o.name,
+                            "price": o.price,
+                            "american_odds": o.american_odds
+                        } for o in poly_market.outcomes
+                    ] if poly_market else [],
+                    "volume": poly_market.total_volume if poly_market else 0,
+                    "liquidity": poly_market.liquidity if poly_market else 0,
+                    "start_time": poly_market.start_time.isoformat() if poly_market and poly_market.start_time else None
+                } if poly_market else None,
+                "kalshi": {
+                    "market_id": best_kalshi_market.market_id if best_kalshi_market else None,
+                    "outcomes": [
+                        {
+                            "name": o.name,
+                            "price": o.price,
+                            "american_odds": o.american_odds
+                        } for o in best_kalshi_market.outcomes
+                    ] if best_kalshi_market else [],
+                    "volume": best_kalshi_market.total_volume if best_kalshi_market else 0,
+                    "liquidity": best_kalshi_market.liquidity if best_kalshi_market else 0,
+                    "start_time": best_kalshi_market.start_time.isoformat() if best_kalshi_market and best_kalshi_market.start_time else None
+                } if best_kalshi_market else None
+            }
+            comparison_data.append(comparison_item)
+        
+        return {
+            "comparisons": comparison_data,
+            "summary": {
+                "total_comparisons": len(comparison_data),
+                "polymarket_markets": len(game_markets),
+                "kalshi_markets": len(kalshi_markets),
+                "arbitrage_opportunities": sum(1 for c in comparison_data if c.get("arbitrage_opportunity", False))
+            },
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/refresh")
-async def refresh_data():
-    """Manually trigger a data refresh"""
-    print("🔄 Manual refresh triggered...")
-    
-    # Fetch fresh data
-    aggregator.fetch_all_markets(
-        include_polymarket=True,
-        include_kalshi=True,
-        include_limitless=True,
-        limit_per_platform=100
-    )
-    aggregator.match_markets()
-    aggregator.create_comparisons()
-    
-    return {
-        "status": "success",
-        "message": "Data refreshed successfully",
-        "total_markets": len(aggregator.all_markets),
-        "comparisons": len(aggregator.comparisons)
-    }
+# ===================== WebSocket feeds =====================
+@app.websocket("/ws/nfl/crypto")
+async def ws_nfl_crypto(websocket: WebSocket):
+    async def fetch():
+        # Reuse the same logic as REST endpoint by calling it directly
+        # Wrap in coroutine as get_nfl_crypto_markets is async
+        return await get_nfl_crypto_markets()
+    await push_periodic(websocket, fetch)
 
 
-def start_server(host: str = "0.0.0.0", port: int = 8000):
-    """Start the API server"""
-    print("=" * 70)
-    print("MARKET AGGREGATION API SERVER")
-    print("=" * 70)
-    print(f"Starting server at http://{host}:{port}")
-    print("API Documentation: http://localhost:8000/docs")
-    print("=" * 70)
-    
-    uvicorn.run(app, host=host, port=port)
+@app.get("/nfl/traditional")
+async def get_nfl_traditional_odds():
+    """
+    Get NFL odds from traditional sportsbooks via Odds API
+    """
+    try:
+        games = odds_client.fetch_nfl_odds()
+        
+        if not games:
+            return {
+                "games": [],
+                "summary": {
+                    "total_games": 0,
+                    "bookmakers": 0
+                }
+            }
+        
+        game_data = []
+        for game in games:
+            best_odds = odds_client.get_best_odds_for_game(game)
+            all_odds = odds_client.get_all_odds_for_game(game)
+            
+            game_item = {
+                "title": f"{game['away_team']} @ {game['home_team']}",
+                "commence_time": game.get('commence_time'),
+                "home_team": game['home_team'],
+                "away_team": game['away_team'],
+                "best_odds": best_odds,
+                "all_odds": all_odds
+            }
+            game_data.append(game_item)
+        
+        return {
+            "games": game_data,
+            "summary": {
+                "total_games": len(game_data),
+                "bookmakers": len(games[0]['bookmakers']) if games else 0
+            },
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.websocket("/ws/nfl/traditional")
+async def ws_nfl_traditional(websocket: WebSocket):
+    async def fetch():
+        return await get_nfl_traditional_odds()
+    await push_periodic(websocket, fetch)
+
+
+@app.get("/politics")
+async def get_politics_markets():
+    """
+    Get politics market comparisons from Polymarket and Kalshi
+    """
+    try:
+        politics_mappings = MANUAL_MAPPINGS.get('politics', [])
+        
+        if not politics_mappings:
+            return {
+                "comparisons": [],
+                "summary": {
+                    "total_comparisons": 0
+                }
+            }
+        
+        comparison_data = []
+        
+        for mapping in politics_mappings:
+            poly_id = mapping.get('polymarket_id')
+            kalshi_id = mapping.get('kalshi_id')
+            description = mapping.get('description', 'Unknown Market')
+            
+            if not poly_id or not kalshi_id:
+                continue
+            
+            try:
+                # Fetch markets
+                poly_market = poly_client.fetch_market_by_id(poly_id)
+                kalshi_markets = kalshi_client.fetch_market_by_event_ticker(kalshi_id)
+                kalshi_market = kalshi_markets[0] if kalshi_markets else None
+                
+                if not poly_market or not kalshi_market:
+                    continue
+                
+                # Get Yes prices
+                poly_yes_price = None
+                kalshi_yes_price = None
+                
+                for outcome in poly_market.outcomes:
+                    if 'yes' in outcome.name.lower():
+                        poly_yes_price = outcome.price
+                        break
+                
+                for outcome in kalshi_market.outcomes:
+                    if 'yes' in outcome.name.lower():
+                        kalshi_yes_price = outcome.price
+                        break
+                
+                if not poly_yes_price or not kalshi_yes_price:
+                    continue
+                
+                # Calculate spread
+                price_spread = abs(poly_yes_price - kalshi_yes_price) * 100
+                best_platform = "polymarket" if poly_yes_price > kalshi_yes_price else "kalshi"
+                
+                comparison_item = {
+                    "title": description,
+                    "price_spread": price_spread,
+                    "best_platform": best_platform,
+                    "arbitrage_opportunity": price_spread > 5.0,
+                    "polymarket": {
+                        "market_id": poly_market.market_id,
+                        "outcomes": [
+                            {
+                                "name": o.name,
+                                "price": o.price,
+                                "american_odds": o.american_odds
+                            } for o in poly_market.outcomes
+                        ],
+                        "volume": poly_market.total_volume,
+                        "liquidity": poly_market.liquidity
+                    },
+                    "kalshi": {
+                        "market_id": kalshi_market.market_id,
+                        "outcomes": [
+                            {
+                                "name": o.name,
+                                "price": o.price,
+                                "american_odds": o.american_odds
+                            } for o in kalshi_market.outcomes
+                        ],
+                        "volume": kalshi_market.total_volume,
+                        "liquidity": kalshi_market.liquidity
+                    }
+                }
+                comparison_data.append(comparison_item)
+                
+            except Exception as e:
+                print(f"Error processing politics market {description}: {e}")
+                continue
+        
+        return {
+            "comparisons": comparison_data,
+            "summary": {
+                "total_comparisons": len(comparison_data),
+                "arbitrage_opportunities": sum(1 for c in comparison_data if c.get("arbitrage_opportunity", False))
+            },
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.websocket("/ws/politics")
+async def ws_politics(websocket: WebSocket):
+    async def fetch():
+        return await get_politics_markets()
+    await push_periodic(websocket, fetch)
 
 
 if __name__ == "__main__":
-    start_server()
-
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

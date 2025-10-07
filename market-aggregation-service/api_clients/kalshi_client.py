@@ -207,10 +207,11 @@ class KalshiClient:
                 return None
             
             # Kalshi markets are binary (Yes/No)
-            yes_price = raw_market.get("yes_bid", 0) / 100.0  # Convert cents to probability
-            no_price = raw_market.get("no_bid", 0) / 100.0
+            # Use ASK prices (what you'd pay to BUY) for comparison
+            yes_price = raw_market.get("yes_ask", 0) / 100.0  # Convert cents to probability
+            no_price = raw_market.get("no_ask", 0) / 100.0
             
-            # If no bid prices, use last prices
+            # If no ask prices, use last prices as fallback
             if yes_price == 0:
                 yes_price = raw_market.get("last_price", 50) / 100.0
             if no_price == 0:
