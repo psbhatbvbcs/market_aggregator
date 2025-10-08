@@ -11,7 +11,7 @@ export interface Outcome {
 export interface MarketData {
   market_id: string;
   outcomes: Outcome[];
-  volume: number;
+  volume: number | string; // Allow both numeric (Polymarket/Kalshi) and string (Limitless) formats
   liquidity: number;
   start_time?: string;
 }
@@ -100,6 +100,25 @@ export interface PoliticsComparison {
 
 export interface PoliticsResponse {
   comparisons: PoliticsComparison[];
+  summary: {
+    total_comparisons: number;
+    arbitrage_opportunities: number;
+  };
+  timestamp: string;
+}
+
+export interface CryptoComparison {
+  title: string;
+  price_spread: number;
+  best_platform: "polymarket" | "kalshi" | "limitless";
+  arbitrage_opportunity: boolean;
+  polymarket: MarketData | null;
+  kalshi: MarketData | null;
+  limitless: MarketData | null;
+}
+
+export interface CryptoResponse {
+  comparisons: CryptoComparison[];
   summary: {
     total_comparisons: number;
     arbitrage_opportunities: number;

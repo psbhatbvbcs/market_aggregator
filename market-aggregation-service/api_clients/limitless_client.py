@@ -127,7 +127,7 @@ class LimitlessClient:
                     price=price,
                     decimal_odds=decimal_odds,
                     american_odds=american_odds,
-                    volume=raw_market.get("volume")
+                    volume=raw_market.get("volumeFormatted")
                 ))
             
             # If we still don't have outcomes, create default binary outcomes
@@ -140,14 +140,14 @@ class LimitlessClient:
                             price=price,
                             decimal_odds=calculate_decimal_odds(price),
                             american_odds=calculate_american_odds(price),
-                            volume=raw_market.get("volume")
+                            volume=raw_market.get("volumeFormatted")
                         ),
                         MarketOutcome(
                             name="No",
                             price=1.0 - price,
                             decimal_odds=calculate_decimal_odds(1.0 - price),
                             american_odds=calculate_american_odds(1.0 - price),
-                            volume=raw_market.get("volume")
+                            volume=raw_market.get("volumeFormatted")
                         )
                     ]
             
@@ -195,7 +195,7 @@ class LimitlessClient:
                 start_time=start_time,
                 end_time=end_time,
                 category=category,
-                total_volume=raw_market.get("volume"),
+                total_volume=raw_market.get("volumeFormatted"),
                 liquidity=raw_market.get("liquidity"),
                 is_active=is_active,
                 is_closed=is_closed,

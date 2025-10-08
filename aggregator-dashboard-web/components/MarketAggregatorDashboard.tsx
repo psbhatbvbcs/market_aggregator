@@ -4,11 +4,13 @@ import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ComparisonGroup from "./ComparisonGroup";
+import CryptoComparisonGroup from "./CryptoComparisonGroup";
 import TraditionalOddsCard from "./TraditionalOddsCard";
 import { 
   CryptoMarketsResponse, 
   TraditionalOddsResponse, 
-  PoliticsResponse 
+  PoliticsResponse,
+  CryptoResponse
 } from "@/lib/market-types";
 import { RefreshCw, AlertCircle } from "lucide-react";
 
@@ -19,6 +21,7 @@ export default function MarketAggregatorDashboard() {
   const [nflCrypto, setNflCrypto] = useState<CryptoMarketsResponse | null>(null);
   const [nflTraditional, setNflTraditional] = useState<TraditionalOddsResponse | null>(null);
   const [politics, setPolitics] = useState<PoliticsResponse | null>(null);
+  const [crypto, setCrypto] = useState<CryptoResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
@@ -64,6 +67,19 @@ export default function MarketAggregatorDashboard() {
     }
   };
 
+  // Fetch Crypto Markets
+  const fetchCrypto = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/crypto`);
+      if (!response.ok) throw new Error("Failed to fetch crypto markets");
+      const data = await response.json();
+      setCrypto(data);
+    } catch (err) {
+      console.error("Error fetching crypto markets:", err);
+      setError("Failed to fetch crypto markets");
+    }
+  };
+
   // Fetch all data
   const fetchAllData = async () => {
     setLoading(true);
@@ -72,7 +88,8 @@ export default function MarketAggregatorDashboard() {
     await Promise.all([
       fetchNFLCrypto(),
       fetchNFLTraditional(),
-      fetchPolitics()
+      fetchPolitics(),
+      fetchCrypto()
     ]);
     
     setLastUpdate(new Date());
@@ -146,6 +163,13 @@ export default function MarketAggregatorDashboard() {
       (ms) => { backoffPolitics = ms; },
       backoffPolitics
     );
+    connect(
+      `ws://${wsHost}:8000/ws/crypto`,
+      (data) => setCrypto(data),
+      (ws) => { wsCrypto = ws; },
+      (ms) => { backoffCrypto = ms; },
+      backoffCrypto
+    );
 
     // Fallback: initial fetch if sockets delayed
     fetchAllData();
@@ -185,10 +209,12 @@ export default function MarketAggregatorDashboard() {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 max-w-md">
+        <TabsList className="grid w-full grid-cols-4 max-w-md">
           <TabsTrigger value="nfl">NFL</TabsTrigger>
           <TabsTrigger value="politics">Politics</TabsTrigger>
+          <TabsTrigger value="crypto">Crypto</TabsTrigger>
           <TabsTrigger value="others">Others</TabsTrigger>
+          
         </TabsList>
 
         {/* NFL Tab */}
@@ -365,6 +391,47 @@ export default function MarketAggregatorDashboard() {
               </p>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Crypto Tab */}
+        <TabsContent value="crypto" className="space-y-4">
+          {crypto && (
+            <>
+              {/* Summary */}
+              <Card className="mb-4">
+                <CardHeader>
+                  <CardTitle>Summary</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-sm text-gray-600">Comparisons</div>
+                      <div className="text-2xl font-bold">{crypto.summary.total_comparisons}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-600">Arbitrage</div>
+                      <div className="text-2xl font-bold text-yellow-600">{crypto.summary.arbitrage_opportunities}</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Comparisons */}
+              {crypto.comparisons.length > 0 ? (
+                <div className="space-y-6">
+                  {crypto.comparisons.map((comp, idx) => (
+                    <CryptoComparisonGroup key={idx} comparison={comp} />
+                  ))}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="py-8 text-center text-gray-500">
+                    No crypto comparisons available at the moment
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          )}
         </TabsContent>
       </Tabs>
     </div>

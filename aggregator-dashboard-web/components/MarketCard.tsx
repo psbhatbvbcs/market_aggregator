@@ -5,7 +5,7 @@ import { MarketData } from "@/lib/market-types";
 import { TrendingUp, DollarSign, Droplet } from "lucide-react";
 
 interface MarketCardProps {
-  platform: "polymarket" | "kalshi";
+  platform: "polymarket" | "kalshi" | "limitless";
   data: MarketData;
   isBest: boolean;
   // Optional team context & per-team best list for granular highlighting
@@ -13,15 +13,27 @@ interface MarketCardProps {
   teamDisplay?: string;
   perTeamBest?: Array<{
     team_normalized: string;
-    best_platform: "polymarket" | "kalshi";
+    best_platform: "polymarket" | "kalshi" | "limitless";
     best_source: "polymarket_team" | "kalshi_yes" | "opponent_no";
     best_price: number;
   }>;
 }
 
 export default function MarketCard({ platform, data, isBest, teamNormalized, teamDisplay, perTeamBest }: MarketCardProps) {
-  const platformName = platform === "polymarket" ? "Polymarket" : "Kalshi";
-  const platformColor = platform === "polymarket" ? "bg-purple-500" : "bg-blue-500";
+  const platformName = platform === "polymarket" ? "Polymarket" : platform === "kalshi" ? "Kalshi" : "Limitless";
+  const platformColor = platform === "polymarket" ? "bg-purple-500" : platform === "kalshi" ? "bg-blue-500" : "bg-gray-700";
+  
+  // Helper function to format volume - handles both numeric and string formats
+  const formatVolume = (volume: number | string) => {
+    if (typeof volume === 'string') {
+      // For Limitless, volume is already formatted (e.g., "382212.712829")
+      const numVolume = parseFloat(volume);
+      return `${(numVolume / 1000).toFixed(1)}K`;
+    } else {
+      // For Polymarket/Kalshi, volume is numeric
+      return `${(volume / 1000).toFixed(1)}K`;
+    }
+  };
   const textColor = "text-red-600";
   const bgColor = "bg-red-50";
 
@@ -74,7 +86,7 @@ export default function MarketCard({ platform, data, isBest, teamNormalized, tea
             <DollarSign className={`w-3 h-3 text-red-500`} />
             <div>
               <div className="text-gray-500">Volume</div>
-              <div className={`font-semibold ${textColor}`}>${(data.volume / 1000).toFixed(1)}K</div>
+              <div className={`font-semibold ${textColor}`}>${formatVolume(data.volume)}</div>
             </div>
           </div>
           <div className="flex items-center gap-1">

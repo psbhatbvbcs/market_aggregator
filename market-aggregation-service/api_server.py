@@ -20,6 +20,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from api_clients.polymarket_client import PolymarketClient
 from api_clients.kalshi_client import KalshiClient
+from api_clients.limitless_client import LimitlessClient
 from api_clients.odds_api_client import OddsAPIClient
 from aggregator import MarketAggregator
 from market_mappings import MANUAL_MAPPINGS
@@ -39,6 +40,7 @@ app.add_middleware(
 # Initialize clients
 poly_client = PolymarketClient()
 kalshi_client = KalshiClient()
+limitless_client = LimitlessClient()
 odds_api_key = "db06be1d18367c369444aa40d6a25499"
 odds_client = OddsAPIClient(odds_api_key)
 
@@ -529,6 +531,164 @@ async def get_politics_markets():
 async def ws_politics(websocket: WebSocket):
     async def fetch():
         return await get_politics_markets()
+    await push_periodic(websocket, fetch)
+
+
+@app.get("/crypto")
+async def get_crypto_markets():
+    """
+    Get crypto market comparisons from Polymarket and Kalshi
+    """
+    try:
+        crypto_mappings = MANUAL_MAPPINGS.get('crypto', [])
+        
+        if not crypto_mappings:
+            return {
+                "comparisons": [],
+                "summary": {
+                    "total_comparisons": 0,
+                    "arbitrage_opportunities": 0
+                },
+                "timestamp": datetime.now().isoformat()
+            }
+        
+        comparison_data = []
+        
+        for mapping in crypto_mappings:
+            poly_id = mapping.get('polymarket_id')
+            kalshi_id = mapping.get('kalshi_id')
+            limitless_id = mapping.get('limitless_id')
+            description = mapping.get('description', 'Unknown Market')
+            
+            # Skip if no IDs are provided at all
+            if not poly_id and not kalshi_id and not limitless_id:
+                continue
+            
+            try:
+                # Fetch markets (only if IDs are provided)
+                poly_market = poly_client.fetch_market_by_id(poly_id) if poly_id else None
+                kalshi_market = None
+                if kalshi_id:
+                    kalshi_markets = kalshi_client.fetch_market_by_event_ticker(kalshi_id)
+                    kalshi_market = kalshi_markets[0] if kalshi_markets else None
+                limitless_market = limitless_client.fetch_market_by_id(limitless_id) if limitless_id else None
+                
+                # Skip only if we have no valid markets
+                valid_markets = [m for m in [poly_market, kalshi_market, limitless_market] if m is not None]
+                if len(valid_markets) < 1:
+                    continue
+                
+                # Get Yes prices (only for available markets)
+                poly_yes_price = None
+                kalshi_yes_price = None
+                limitless_yes_price = None
+                
+                if poly_market:
+                    for outcome in poly_market.outcomes:
+                        if 'yes' in outcome.name.lower():
+                            poly_yes_price = outcome.price
+                            break
+                
+                if kalshi_market:
+                    for outcome in kalshi_market.outcomes:
+                        if 'yes' in outcome.name.lower():
+                            kalshi_yes_price = outcome.price
+                            break
+                
+                if limitless_market:
+                    for outcome in limitless_market.outcomes:
+                        if 'yes' in outcome.name.lower():
+                            limitless_yes_price = outcome.price
+                            break
+                
+                # Get valid prices
+                valid_prices = []
+                if poly_yes_price is not None:
+                    valid_prices.append(("polymarket", poly_yes_price))
+                if kalshi_yes_price is not None:
+                    valid_prices.append(("kalshi", kalshi_yes_price))
+                if limitless_yes_price is not None:
+                    valid_prices.append(("limitless", limitless_yes_price))
+                
+                if len(valid_prices) < 1:
+                    continue
+                
+                # Calculate spread (find max and min prices across available platforms)
+                prices = [price for _, price in valid_prices]
+                max_price = max(prices)
+                min_price = min(prices)
+                
+                # If only 1 platform, spread is 0
+                price_spread = (max_price - min_price) * 100 if len(valid_prices) > 1 else 0
+                
+                # Determine best platform
+                best_platform = next(platform for platform, price in valid_prices if price == max_price)
+                
+                comparison_item = {
+                    "title": description,
+                    "price_spread": price_spread,
+                    "best_platform": best_platform,
+                    "arbitrage_opportunity": price_spread > 5.0,
+                    "polymarket": {
+                        "market_id": poly_market.market_id,
+                        "outcomes": [
+                            {
+                                "name": o.name,
+                                "price": o.price,
+                                "american_odds": o.american_odds
+                            } for o in poly_market.outcomes
+                        ],
+                        "volume": poly_market.total_volume,
+                        "liquidity": poly_market.liquidity
+                    } if poly_market else None,
+                    "kalshi": {
+                        "market_id": kalshi_market.market_id,
+                        "outcomes": [
+                            {
+                                "name": o.name,
+                                "price": o.price,
+                                "american_odds": o.american_odds
+                            } for o in kalshi_market.outcomes
+                        ],
+                        "volume": kalshi_market.total_volume,
+                        "liquidity": kalshi_market.liquidity
+                    } if kalshi_market else None,
+                    "limitless": {
+                        "market_id": limitless_market.market_id,
+                        "outcomes": [
+                            {
+                                "name": o.name,
+                                "price": o.price,
+                                "american_odds": o.american_odds
+                            } for o in limitless_market.outcomes
+                        ],
+                        "volume": limitless_market.total_volume,
+                        "liquidity": limitless_market.liquidity
+                    } if limitless_market else None
+                }
+                comparison_data.append(comparison_item)
+                
+            except Exception as e:
+                print(f"Error processing crypto market {description}: {e}")
+                continue
+        
+        return {
+            "comparisons": comparison_data,
+            "summary": {
+                "total_comparisons": len(comparison_data),
+                "arbitrage_opportunities": sum(1 for c in comparison_data if c.get("arbitrage_opportunity", False))
+            },
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.websocket("/ws/crypto")
+async def ws_crypto(websocket: WebSocket):
+    async def fetch():
+        return await get_crypto_markets()
     await push_periodic(websocket, fetch)
 
 

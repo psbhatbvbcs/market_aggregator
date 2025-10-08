@@ -50,7 +50,12 @@ MANUAL_MAPPINGS = {
     
     # Other categories as needed
     "crypto": [
-        
+        {
+            "polymarket_id": "0xf7f69e2e5cd511b21bb295c6deabffbf60da452b8bfbb1fd51c652f1ef5ef1e7",
+            "kalshi_id": "KXBTC-100K-31DEC25", # This is still an invalid ID, Kalshi will be null
+            "limitless_id": "us-national-solana-reserve-in-2025-1748943996289", # Correct slug
+            "description": "US national Solana reserve in 2025?"
+        }
     ],
 }
 
