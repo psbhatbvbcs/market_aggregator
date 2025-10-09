@@ -10,7 +10,7 @@ Provides real-time market comparison data from multiple platforms:
 from fastapi import FastAPI, HTTPException
 from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, date
 from typing import List, Dict, Any, Optional
 import sys
 import os
@@ -22,6 +22,7 @@ from api_clients.polymarket_client import PolymarketClient
 from api_clients.kalshi_client import KalshiClient
 from api_clients.limitless_client import LimitlessClient
 from api_clients.odds_api_client import OddsAPIClient
+from api_clients.rundown_client import RundownClient
 from aggregator import MarketAggregator
 from market_mappings import MANUAL_MAPPINGS
 from nfl_teams import normalize_nfl_team_name
@@ -41,6 +42,7 @@ app.add_middleware(
 poly_client = PolymarketClient()
 kalshi_client = KalshiClient()
 limitless_client = LimitlessClient()
+rundown_client = RundownClient()
 odds_api_key = "db06be1d18367c369444aa40d6a25499"
 odds_client = OddsAPIClient(odds_api_key)
 
@@ -689,6 +691,79 @@ async def get_crypto_markets():
 async def ws_crypto(websocket: WebSocket):
     async def fetch():
         return await get_crypto_markets()
+    await push_periodic(websocket, fetch)
+
+
+@app.get("/rundown")
+async def get_rundown_markets():
+    """
+    Get rundown market data from The Rundown API
+    """
+    try:
+        # Using a hardcoded date from the example for demonstration
+        event_date = date(2025, 10, 12)
+        # Using sport_id=2 (NFL) from the example
+        rundown_data = rundown_client.get_events_by_date(sport_id=2, event_date=event_date)
+        
+        events = rundown_data.get("events", [])
+        
+        if not events:
+            return {
+                "events": [],
+                "summary": {"total_events": 0, "total_bookmakers": 0},
+                "timestamp": datetime.now().isoformat()
+            }
+            
+        processed_events = []
+        all_bookmakers = set()
+
+        for event in events:
+            home_team = ""
+            away_team = ""
+            for team in event.get("teams", []):
+                if team.get("is_home"):
+                    home_team = team.get("name")
+                if team.get("is_away"):
+                    away_team = team.get("name")
+
+            lines = []
+            if "lines" in event and event["lines"]:
+                for line_data in event["lines"].values():
+                    affiliate_name = line_data.get("affiliate", {}).get("affiliate_name")
+                    if affiliate_name:
+                        all_bookmakers.add(affiliate_name)
+                        moneyline = line_data.get("moneyline", {})
+                        lines.append({
+                            "affiliate_name": affiliate_name,
+                            "moneyline_home": moneyline.get("moneyline_home"),
+                            "moneyline_away": moneyline.get("moneyline_away"),
+                        })
+
+            processed_events.append({
+                "event_id": event.get("event_id"),
+                "sport_id": event.get("sport_id"),
+                "event_date": event.get("event_date"),
+                "home_team": home_team,
+                "away_team": away_team,
+                "lines": lines
+            })
+
+        return {
+            "events": processed_events,
+            "summary": {
+                "total_events": len(processed_events),
+                "total_bookmakers": len(all_bookmakers)
+            },
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.websocket("/ws/rundown")
+async def ws_rundown(websocket: WebSocket):
+    async def fetch():
+        return await get_rundown_markets()
     await push_periodic(websocket, fetch)
 
 

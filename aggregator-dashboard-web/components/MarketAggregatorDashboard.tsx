@@ -10,7 +10,8 @@ import {
   CryptoMarketsResponse, 
   TraditionalOddsResponse, 
   PoliticsResponse,
-  CryptoResponse
+  CryptoResponse,
+  RundownResponse
 } from "@/lib/market-types";
 import { RefreshCw, AlertCircle } from "lucide-react";
 
@@ -22,6 +23,7 @@ export default function MarketAggregatorDashboard() {
   const [nflTraditional, setNflTraditional] = useState<TraditionalOddsResponse | null>(null);
   const [politics, setPolitics] = useState<PoliticsResponse | null>(null);
   const [crypto, setCrypto] = useState<CryptoResponse | null>(null);
+  const [rundown, setRundown] = useState<RundownResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
@@ -80,6 +82,19 @@ export default function MarketAggregatorDashboard() {
     }
   };
 
+  // Fetch Rundown Markets
+  const fetchRundown = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/rundown`);
+      if (!response.ok) throw new Error("Failed to fetch rundown markets");
+      const data = await response.json();
+      setRundown(data);
+    } catch (err) {
+      console.error("Error fetching rundown markets:", err);
+      setError("Failed to fetch rundown markets");
+    }
+  };
+
   // Fetch all data
   const fetchAllData = async () => {
     setLoading(true);
@@ -89,7 +104,8 @@ export default function MarketAggregatorDashboard() {
       fetchNFLCrypto(),
       fetchNFLTraditional(),
       fetchPolitics(),
-      fetchCrypto()
+      fetchCrypto(),
+      fetchRundown()
     ]);
     
     setLastUpdate(new Date());
@@ -101,9 +117,11 @@ export default function MarketAggregatorDashboard() {
     let wsCrypto: WebSocket | null = null;
     let wsTraditional: WebSocket | null = null;
     let wsPolitics: WebSocket | null = null;
+    let wsRundown: WebSocket | null = null;
     let backoffCrypto = 1000;
     let backoffTraditional = 1000;
     let backoffPolitics = 1000;
+    let backoffRundown = 1000;
     const maxBackoff = 15000;
     let isUnmounting = false;
 
@@ -170,6 +188,13 @@ export default function MarketAggregatorDashboard() {
       (ms) => { backoffCrypto = ms; },
       backoffCrypto
     );
+    connect(
+      `ws://${wsHost}:8000/ws/rundown`,
+      (data) => setRundown(data),
+      (ws) => { wsRundown = ws; },
+      (ms) => { backoffRundown = ms; },
+      backoffRundown
+    );
 
     // Fallback: initial fetch if sockets delayed
     fetchAllData();
@@ -179,6 +204,7 @@ export default function MarketAggregatorDashboard() {
       if (wsCrypto && wsCrypto.readyState === WebSocket.OPEN) wsCrypto.close(1000);
       if (wsTraditional && wsTraditional.readyState === WebSocket.OPEN) wsTraditional.close(1000);
       if (wsPolitics && wsPolitics.readyState === WebSocket.OPEN) wsPolitics.close(1000);
+      if (wsRundown && wsRundown.readyState === WebSocket.OPEN) wsRundown.close(1000);
     };
   }, []);
 
@@ -209,10 +235,11 @@ export default function MarketAggregatorDashboard() {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4 max-w-md">
+        <TabsList className="grid w-full grid-cols-5 max-w-md">
           <TabsTrigger value="nfl">NFL</TabsTrigger>
           <TabsTrigger value="politics">Politics</TabsTrigger>
           <TabsTrigger value="crypto">Crypto</TabsTrigger>
+          <TabsTrigger value="rundown">Rundown</TabsTrigger>
           <TabsTrigger value="others">Others</TabsTrigger>
           
         </TabsList>
@@ -427,6 +454,68 @@ export default function MarketAggregatorDashboard() {
                 <Card>
                   <CardContent className="py-8 text-center text-gray-500">
                     No crypto comparisons available at the moment
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          )}
+        </TabsContent>
+
+        {/* Rundown Tab */}
+        <TabsContent value="rundown" className="space-y-4">
+          {rundown && (
+            <>
+              {/* Summary */}
+              <Card className="mb-4">
+                <CardHeader>
+                  <CardTitle>Summary</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-sm text-gray-600">Total Events</div>
+                      <div className="text-2xl font-bold">{rundown.summary?.total_events || 0}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-600">Bookmakers</div>
+                      <div className="text-2xl font-bold">{rundown.summary?.total_bookmakers || 0}</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Events */}
+              {rundown.events && rundown.events.length > 0 ? (
+                <div className="space-y-6">
+                  {rundown.events.map((event) => (
+                    <Card key={event.event_id}>
+                      <CardHeader>
+                        <CardTitle>{event.away_team} @ {event.home_team}</CardTitle>
+                        <div className="text-sm text-gray-500">{new Date(event.event_date).toLocaleString()}</div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          <div className="grid grid-cols-3 font-bold text-sm">
+                            <span>Bookmaker</span>
+                            <span className="text-right">{event.away_team}</span>
+                            <span className="text-right">{event.home_team}</span>
+                          </div>
+                          {event.lines.map((line) => (
+                            <div key={line.affiliate_name} className="grid grid-cols-3 text-sm border-t pt-2">
+                              <span>{line.affiliate_name}</span>
+                              <span className="text-right">{line.moneyline_away > 0 ? `+${line.moneyline_away}` : line.moneyline_away}</span>
+                              <span className="text-right">{line.moneyline_home > 0 ? `+${line.moneyline_home}` : line.moneyline_home}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="py-8 text-center text-gray-500">
+                    No rundown data available at the moment. Please ensure your RAPIDAPI_KEY is set correctly.
                   </CardContent>
                 </Card>
               )}
