@@ -834,15 +834,21 @@ def start_server(host: str = "0.0.0.0", port: int = 8000):
 
 
 @app.get("/rundown")
-async def get_rundown_markets():
+async def get_rundown_markets(date_param: Optional[str] = Query(None, alias="date"), sport_id: int = Query(2, ge=1)):
     """
     Get rundown market data from The Rundown API
     """
     try:
-        # Using a hardcoded date from the example for demonstration
-        event_date = date(2025, 10, 12)
-        # Using sport_id=2 (NFL) from the example
-        rundown_data = rundown_client.get_events_by_date(sport_id=2, event_date=event_date)
+        # Use provided date (YYYY-MM-DD), else today's date
+        if date_param:
+            try:
+                event_date = datetime.strptime(date_param, "%Y-%m-%d").date()
+            except Exception:
+                raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+        else:
+            event_date = datetime.now().date()
+        # Fetch events for the requested sport (default NFL=2)
+        rundown_data = rundown_client.get_events_by_date(sport_id=sport_id, event_date=event_date)
         
         events = rundown_data.get("events", [])
         
@@ -855,8 +861,27 @@ async def get_rundown_markets():
             
         processed_events = []
         all_bookmakers = set()
+        # Use timezone-aware current time in UTC for consistent comparisons
+        now = datetime.now(timezone.utc)
 
         for event in events:
+            # Filter future games for today with a 2-hour buffer window
+            event_date_str = event.get("event_date")
+            if event_date_str:
+                try:
+                    # Parse event date and time
+                    event_datetime = date_parser.parse(event_date_str)
+                    if event_datetime.tzinfo is None:
+                        event_datetime = event_datetime.replace(tzinfo=timezone.utc)
+                    
+                    # If event is today, include only if it starts after (now - 2 hours)
+                    # This keeps a small buffer to account for timing drift and late-starting games
+                    if event_datetime.date() == now.date() and event_datetime <= (now - timedelta(hours=2)):
+                        continue
+                except Exception:
+                    # If parsing fails, include the event
+                    pass
+
             home_team = ""
             away_team = ""
             for team in event.get("teams", []):
@@ -893,17 +918,12 @@ async def get_rundown_markets():
                 "total_events": len(processed_events),
                 "total_bookmakers": len(all_bookmakers)
             },
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
+            "requested_date": event_date.isoformat(),
+            "requested_sport_id": sport_id
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.websocket("/ws/rundown")
-async def ws_rundown(websocket: WebSocket):
-    async def fetch():
-        return await get_rundown_markets()
-    await push_periodic(websocket, fetch)
 
 
 if __name__ == "__main__":
