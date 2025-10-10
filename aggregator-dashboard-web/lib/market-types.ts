@@ -126,6 +126,27 @@ export interface CryptoResponse {
   timestamp: string;
 }
 
+// Others (external matched markets) - reuse politics card layout
+export interface OthersComparison {
+  title: string;
+  price_spread: number;
+  best_platform: "polymarket" | "kalshi";
+  arbitrage_opportunity: boolean;
+  polymarket: MarketData | null;
+  kalshi: MarketData | null;
+}
+
+export interface OthersResponse {
+  comparisons: OthersComparison[];
+  summary: {
+    total_comparisons: number;
+    arbitrage_opportunities: number;
+  };
+  timestamp: string;
+  limit?: number;
+  offset?: number;
+}
+
 export interface RundownLine {
   affiliate_name: string;
   moneyline_home: number;

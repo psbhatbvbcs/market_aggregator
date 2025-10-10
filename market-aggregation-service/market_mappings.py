@@ -55,6 +55,11 @@ MANUAL_MAPPINGS = {
             "kalshi_id": "KXBTC-100K-31DEC25", # This is still an invalid ID, Kalshi will be null
             "limitless_id": "us-national-solana-reserve-in-2025-1748943996289", # Correct slug
             "description": "US national Solana reserve in 2025?"
+        },
+        {
+            "limitless_id": "dollarbtc-above-dollar11981656-on-oct-9-0800-utc-1759910431542",
+            "polymarket_id": "0xf388b13b3d379b41bfd6e2d8ba5ff976d945c020751c2cd151c826f4b8dd7311",
+            "description": "Dollar BTC above $11,981.656 on Oct 9, 08:00 UTC?"
         }
     ],
 }

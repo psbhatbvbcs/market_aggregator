@@ -8,12 +8,16 @@ Provides real-time market comparison data from multiple platforms:
 """
 
 from fastapi import FastAPI, HTTPException
-from fastapi import WebSocket, WebSocketDisconnect
+from fastapi import Query
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime, timedelta, timezone, date
 from typing import List, Dict, Any, Optional
+import signal
+import asyncio
 import sys
 import os
+import requests
+import time
 from dateutil import parser as date_parser
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -46,6 +50,13 @@ rundown_client = RundownClient()
 odds_api_key = "db06be1d18367c369444aa40d6a25499"
 odds_client = OddsAPIClient(odds_api_key)
 
+# Simple in-memory cache for external "others" endpoint
+OTHERS_CACHE_TTL_SECONDS = 5
+_others_cache_payload: Optional[Dict[str, Any]] = None
+_others_cache_limit: Optional[int] = None
+_others_cache_offset: Optional[int] = None
+_others_cache_ts: float = 0.0
+_others_cache_lock = asyncio.Lock()
 
 def filter_future_markets(markets):
     """Filter markets by future gameStartTime and spread <= 0.05"""
@@ -86,24 +97,7 @@ def filter_correct_markets(markets):
             continue
     
     return correct_markets
-async def push_periodic(websocket: WebSocket, fetch_func, interval_seconds: int = 5):
-    """Utility: periodically send JSON from fetch_func to a websocket."""
-    await websocket.accept()
-    try:
-        while True:
-            data = await fetch_func()
-            await websocket.send_json(data)
-            # simple sleep without blocking
-            import asyncio
-            await asyncio.sleep(interval_seconds)
-    except WebSocketDisconnect:
-        return
-    except Exception as e:
-        try:
-            await websocket.send_json({"error": str(e)})
-        except Exception:
-            pass
-        return
+"""WebSocket support removed; frontend polls REST endpoints."""
 
 
 
@@ -116,7 +110,9 @@ async def root():
         "endpoints": {
             "/nfl/crypto": "NFL markets from Polymarket + Kalshi",
             "/nfl/traditional": "NFL odds from traditional sportsbooks",
-            "/politics": "Politics markets from Polymarket + Kalshi"
+            "/politics": "Politics markets from Polymarket + Kalshi",
+            "/crypto": "Crypto markets across Polymarket/Kalshi/Limitless",
+            "/others": "Externally matched Polymarket + Kalshi markets"
         }
     }
 
@@ -362,14 +358,7 @@ async def get_nfl_crypto_markets():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ===================== WebSocket feeds =====================
-@app.websocket("/ws/nfl/crypto")
-async def ws_nfl_crypto(websocket: WebSocket):
-    async def fetch():
-        # Reuse the same logic as REST endpoint by calling it directly
-        # Wrap in coroutine as get_nfl_crypto_markets is async
-        return await get_nfl_crypto_markets()
-    await push_periodic(websocket, fetch)
+# WebSocket feeds removed
 
 
 @app.get("/nfl/traditional")
@@ -417,11 +406,7 @@ async def get_nfl_traditional_odds():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.websocket("/ws/nfl/traditional")
-async def ws_nfl_traditional(websocket: WebSocket):
-    async def fetch():
-        return await get_nfl_traditional_odds()
-    await push_periodic(websocket, fetch)
+ 
 
 
 @app.get("/politics")
@@ -529,11 +514,7 @@ async def get_politics_markets():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.websocket("/ws/politics")
-async def ws_politics(websocket: WebSocket):
-    async def fetch():
-        return await get_politics_markets()
-    await push_periodic(websocket, fetch)
+ 
 
 
 @app.get("/crypto")
@@ -687,11 +668,169 @@ async def get_crypto_markets():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.websocket("/ws/crypto")
-async def ws_crypto(websocket: WebSocket):
-    async def fetch():
-        return await get_crypto_markets()
-    await push_periodic(websocket, fetch)
+ 
+
+
+# ===================== Others (external matched markets) =====================
+@app.get("/others")
+async def get_others_matched_markets(limit: int = Query(10, ge=1, le=100), offset: int = Query(0, ge=0)):
+    """
+    Proxy external matched markets API (Polymarket + Kalshi) and normalize
+    to the same structure used by politics comparisons.
+    """
+    try:
+        global _others_cache_payload, _others_cache_limit, _others_cache_offset, _others_cache_ts
+        url = f"https://monitorthesituation.lol/api/bff/matches?top_k=1&limit={limit}&offset={offset}"
+        headers = {"accept": "*/*"}
+        # Serve from cache when fresh and matching params
+        now = time.time()
+        if (
+            _others_cache_payload is not None
+            and _others_cache_limit == limit
+            and _others_cache_offset == offset
+            and (now - _others_cache_ts) < OTHERS_CACHE_TTL_SECONDS
+        ):
+            return _others_cache_payload
+
+        # Lock and re-check inside to avoid stampede
+        async with _others_cache_lock:
+            now = time.time()
+            if (
+                _others_cache_payload is not None
+                and _others_cache_limit == limit
+                and _others_cache_offset == offset
+                and (now - _others_cache_ts) < OTHERS_CACHE_TTL_SECONDS
+            ):
+                return _others_cache_payload
+
+            # Run blocking HTTP in a thread to avoid blocking the event loop
+            resp = await asyncio.to_thread(requests.get, url, headers=headers, timeout=10)
+        if resp.status_code != 200:
+            raise HTTPException(status_code=502, detail="Upstream matches API error")
+        raw = resp.json() or {}
+
+        def to_fraction(val):
+            try:
+                if val is None:
+                    return None
+                n = float(val)
+                if n > 1:
+                    n = max(0.0, min(1.0, n / 100.0))
+                else:
+                    n = max(0.0, min(1.0, n))
+                return n
+            except Exception:
+                return None
+
+        comparisons = []
+        for item in (raw.get("data") or []):
+            best = (item.get("best") or {}).get("market") or {}
+            source = item.get("source") or {}
+
+            title = best.get("title") or source.get("title") or "Matched Market"
+
+            kalshi_yes = to_fraction(best.get("yes_ask", best.get("yes_bid", best.get("last_price"))))
+            poly_yes = to_fraction(source.get("yes_ask", source.get("yes_bid", source.get("last_price"))))
+
+            polymarket = None
+            if source:
+                polymarket = {
+                    "market_id": source.get("market_ref_id") or source.get("id") or "",
+                    "outcomes": [
+                        {"name": "Yes", "price": poly_yes or 0.0, "american_odds": ""},
+                        {"name": "No", "price": 1 - (poly_yes or 0.0), "american_odds": ""},
+                    ],
+                    "volume": source.get("volume") or 0,
+                    "liquidity": float(source.get("liquidity") or 0),
+                }
+
+            kalshi = None
+            if best:
+                kalshi = {
+                    "market_id": best.get("market_ref_id") or best.get("id") or "",
+                    "outcomes": [
+                        {"name": "Yes", "price": kalshi_yes or 0.0, "american_odds": ""},
+                        {"name": "No", "price": 1 - (kalshi_yes or 0.0), "american_odds": ""},
+                    ],
+                    "volume": best.get("volume") or 0,
+                    "liquidity": float(best.get("liquidity") or 0),
+                }
+
+            spread = 0.0
+            if poly_yes is not None and kalshi_yes is not None:
+                spread = abs(poly_yes - kalshi_yes) * 100.0
+            best_platform = (
+                "polymarket" if (poly_yes or 0) > (kalshi_yes or 0) else "kalshi"
+            )
+
+            comparisons.append({
+                "title": title,
+                "price_spread": spread,
+                "best_platform": best_platform,
+                "arbitrage_opportunity": spread > 5.0,
+                "polymarket": polymarket,
+                "kalshi": kalshi,
+            })
+
+        payload = {
+            "comparisons": comparisons,
+            "summary": {
+                "total_comparisons": len(comparisons),
+                "arbitrage_opportunities": sum(1 for c in comparisons if c.get("arbitrage_opportunity")),
+            },
+            "timestamp": datetime.now().isoformat(),
+            "limit": limit,
+            "offset": offset,
+        }
+
+        # Update cache
+        async with _others_cache_lock:
+            _others_cache_payload = payload
+            _others_cache_limit = limit
+            _others_cache_offset = offset
+            _others_cache_ts = time.time()
+
+        return payload
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+ 
+
+
+def start_server(host: str = "0.0.0.0", port: int = 8000):
+    """Start the FastAPI server with robust signal handling."""
+    import uvicorn
+    import os
+
+    # Zero graceful timeout to avoid hanging on shutdown with active websocket tasks
+    config = uvicorn.Config(
+        app,
+        host=host,
+        port=port,
+        log_level="info",
+        timeout_graceful_shutdown=0,
+    )
+    server = uvicorn.Server(config)
+
+    def _force_exit(signum, frame):
+        try:
+            print("\n\n⚠️  Received signal, force-stopping server...\n")
+        except Exception:
+            pass
+        try:
+            server.should_exit = True
+        except Exception:
+            pass
+        os._exit(130 if signum == signal.SIGINT else 143)
+
+    # Ensure Ctrl+C/SIGTERM always terminates promptly
+    signal.signal(signal.SIGINT, _force_exit)
+    signal.signal(signal.SIGTERM, _force_exit)
+
+    server.run()
 
 
 @app.get("/rundown")
@@ -768,5 +907,4 @@ async def ws_rundown(websocket: WebSocket):
 
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    start_server(host="0.0.0.0", port=8000)

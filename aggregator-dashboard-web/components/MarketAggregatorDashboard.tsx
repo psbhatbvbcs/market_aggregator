@@ -11,7 +11,8 @@ import {
   TraditionalOddsResponse, 
   PoliticsResponse,
   CryptoResponse,
-  RundownResponse
+  OthersResponse,
+  OthersComparison,
 } from "@/lib/market-types";
 import { RefreshCw, AlertCircle } from "lucide-react";
 
@@ -23,12 +24,14 @@ export default function MarketAggregatorDashboard() {
   const [nflTraditional, setNflTraditional] = useState<TraditionalOddsResponse | null>(null);
   const [politics, setPolitics] = useState<PoliticsResponse | null>(null);
   const [crypto, setCrypto] = useState<CryptoResponse | null>(null);
-  const [rundown, setRundown] = useState<RundownResponse | null>(null);
+  const [others, setOthers] = useState<OthersResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [activeTab, setActiveTab] = useState("nfl");
   const [nflSubTab, setNflSubTab] = useState<"crypto" | "traditional">("crypto");
+  const [othersOffset, setOthersOffset] = useState(0);
+  const OTHERS_LIMIT = 10;
 
   // Fetch NFL Crypto Markets
   const fetchNFLCrypto = async () => {
@@ -82,16 +85,21 @@ export default function MarketAggregatorDashboard() {
     }
   };
 
-  // Fetch Rundown Markets
-  const fetchRundown = async () => {
+  // Fetch Others (from our API server which proxies and normalizes)
+  const fetchOthers = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/rundown`);
-      if (!response.ok) throw new Error("Failed to fetch rundown markets");
-      const data = await response.json();
-      setRundown(data);
+      const params = new URLSearchParams({ limit: String(OTHERS_LIMIT), offset: String(othersOffset) });
+      const response = await fetch(`${API_BASE_URL}/others?${params.toString()}`);
+      if (!response.ok) throw new Error("Failed to fetch others markets");
+      const data: any = await response.json();
+      if (data && data.error) {
+        setError(String(data.error));
+        return;
+      }
+      setOthers(data as OthersResponse);
     } catch (err) {
-      console.error("Error fetching rundown markets:", err);
-      setError("Failed to fetch rundown markets");
+      console.error("Error fetching others markets:", err);
+      setError("Failed to fetch others markets");
     }
   };
 
@@ -105,108 +113,37 @@ export default function MarketAggregatorDashboard() {
       fetchNFLTraditional(),
       fetchPolitics(),
       fetchCrypto(),
-      fetchRundown()
+      fetchOthers()
     ]);
     
     setLastUpdate(new Date());
     setLoading(false);
   };
 
-  // WebSocket helpers with backoff
+  // Polling: fetch active tab every 10s
   useEffect(() => {
-    let wsCrypto: WebSocket | null = null;
-    let wsTraditional: WebSocket | null = null;
-    let wsPolitics: WebSocket | null = null;
-    let wsRundown: WebSocket | null = null;
-    let backoffCrypto = 1000;
-    let backoffTraditional = 1000;
-    let backoffPolitics = 1000;
-    let backoffRundown = 1000;
-    const maxBackoff = 15000;
-    let isUnmounting = false;
-
-    const connect = (
-      path: string,
-      onMessage: (data: any) => void,
-      onAssign: (ws: WebSocket) => void,
-      onBackoffUpdate: (ms: number) => void,
-      initialBackoff: number
-    ) => {
-      const ws = new WebSocket(path);
-      onAssign(ws);
-      ws.onopen = () => {
-        onBackoffUpdate(1000);
-      };
-      ws.onmessage = (evt) => {
-        try {
-          const data = JSON.parse(evt.data);
-          onMessage(data);
-          setLastUpdate(new Date());
-          setLoading(false);
-        } catch (e) {
-          // ignore parsing errors
+    let interval: any;
+    const tick = async () => {
+      try {
+        if (activeTab === "nfl") {
+          if (nflSubTab === "crypto") await fetchNFLCrypto();
+          else await fetchNFLTraditional();
+        } else if (activeTab === "politics") {
+          await fetchPolitics();
+        } else if (activeTab === "crypto") {
+          await fetchCrypto();
+        } else if (activeTab === "others") {
+          await fetchOthers();
         }
-      };
-      ws.onclose = () => {
-        if (isUnmounting) return; // don't reconnect during unmount (React StrictMode double-invoke)
-        const next = Math.min(initialBackoff * 2, maxBackoff);
-        onBackoffUpdate(next);
-        setTimeout(() => connect(path, onMessage, onAssign, onBackoffUpdate, next), next);
-      };
-      ws.onerror = () => {
-        ws.close();
-      };
+        setLastUpdate(new Date());
+        setLoading(false);
+      } catch (_) {}
     };
-
-    // Connect sockets
-    const wsHost = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-    connect(
-      `ws://${wsHost}:8000/ws/nfl/crypto`,
-      (data) => setNflCrypto(data),
-      (ws) => { wsCrypto = ws; },
-      (ms) => { backoffCrypto = ms; },
-      backoffCrypto
-    );
-    connect(
-      `ws://${wsHost}:8000/ws/nfl/traditional`,
-      (data) => setNflTraditional(data),
-      (ws) => { wsTraditional = ws; },
-      (ms) => { backoffTraditional = ms; },
-      backoffTraditional
-    );
-    connect(
-      `ws://${wsHost}:8000/ws/politics`,
-      (data) => setPolitics(data),
-      (ws) => { wsPolitics = ws; },
-      (ms) => { backoffPolitics = ms; },
-      backoffPolitics
-    );
-    connect(
-      `ws://${wsHost}:8000/ws/crypto`,
-      (data) => setCrypto(data),
-      (ws) => { wsCrypto = ws; },
-      (ms) => { backoffCrypto = ms; },
-      backoffCrypto
-    );
-    connect(
-      `ws://${wsHost}:8000/ws/rundown`,
-      (data) => setRundown(data),
-      (ws) => { wsRundown = ws; },
-      (ms) => { backoffRundown = ms; },
-      backoffRundown
-    );
-
-    // Fallback: initial fetch if sockets delayed
-    fetchAllData();
-
-    return () => {
-      isUnmounting = true;
-      if (wsCrypto && wsCrypto.readyState === WebSocket.OPEN) wsCrypto.close(1000);
-      if (wsTraditional && wsTraditional.readyState === WebSocket.OPEN) wsTraditional.close(1000);
-      if (wsPolitics && wsPolitics.readyState === WebSocket.OPEN) wsPolitics.close(1000);
-      if (wsRundown && wsRundown.readyState === WebSocket.OPEN) wsRundown.close(1000);
-    };
-  }, []);
+    // initial
+    tick();
+    interval = setInterval(tick, 10000);
+    return () => clearInterval(interval);
+  }, [activeTab, nflSubTab, othersOffset]);
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -221,7 +158,7 @@ export default function MarketAggregatorDashboard() {
             )}
           </div>
           <span className="text-gray-400">•</span>
-          <span>Auto-refresh: 5s</span>
+          <span>Auto-refresh: 10s</span>
         </div>
       </div>
 
@@ -408,16 +345,76 @@ export default function MarketAggregatorDashboard() {
 
         {/* Others Tab */}
         <TabsContent value="others" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Other Markets</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">
-                Additional market categories will be available here soon.
-              </p>
-            </CardContent>
-          </Card>
+          {others && others.summary && (
+            <>
+              {/* Summary */}
+              <Card className="mb-4">
+                <CardHeader>
+                  <CardTitle>Summary</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                      <div className="text-sm text-gray-600">Comparisons</div>
+                      <div className="text-2xl font-bold">{others.summary?.total_comparisons ?? 0}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-600">Arbitrage</div>
+                      <div className="text-2xl font-bold text-yellow-600">{others.summary?.arbitrage_opportunities ?? 0}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-600">Limit</div>
+                      <div className="text-xl">{others.limit ?? OTHERS_LIMIT}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-600">Offset</div>
+                      <div className="text-xl">{others.offset ?? othersOffset}</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Comparisons */}
+              {others.comparisons && others.comparisons.length > 0 ? (
+                <div className="space-y-6">
+                  {others.comparisons.map((comp, idx) => (
+                    <ComparisonGroup key={idx} comparison={comp as any} />
+                  ))}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="py-8 text-center text-gray-500">
+                    No other comparisons available at the moment
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Pagination */}
+              <div className="flex items-center justify-between mt-4">
+                <button
+                  onClick={() => {
+                    const next = Math.max(0, othersOffset - OTHERS_LIMIT)
+                    setOthersOffset(next);
+                    fetchOthers();
+                  }}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${othersOffset === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                  disabled={othersOffset === 0}
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() => {
+                    const next = othersOffset + OTHERS_LIMIT
+                    setOthersOffset(next);
+                    fetchOthers();
+                  }}
+                  className="px-4 py-2 rounded-lg font-medium transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200"
+                >
+                  Next
+                </button>
+              </div>
+            </>
+          )}
         </TabsContent>
 
         {/* Crypto Tab */}

@@ -5,12 +5,26 @@ import argparse
 import asyncio
 import sys
 import os
+import signal
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from aggregator import MarketAggregator
 from price_tracker import PriceTracker
 from api_server import start_server
 
+
+def _force_exit(signum, frame):
+    # Immediate, reliable exit on Ctrl+C / SIGTERM
+    try:
+        print("\n\n⚠️  Received signal, force-stopping...\n")
+    except Exception:
+        pass
+    os._exit(130 if signum == signal.SIGINT else 143)
+
+
+# Install signal handlers early so all modes honor Ctrl+C
+signal.signal(signal.SIGINT, _force_exit)
+signal.signal(signal.SIGTERM, _force_exit)
 
 def run_single_aggregation():
     """Run a single aggregation and print results"""
