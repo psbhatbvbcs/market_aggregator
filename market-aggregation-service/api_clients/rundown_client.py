@@ -9,7 +9,7 @@ class RundownClient:
     Requires RAPIDAPI_KEY environment variable to be set.
     """
     def __init__(self):
-        self.api_key = "15b8acc4edmshc6919219226b9c9p131160jsna478e4d39e40"
+        self.api_key = "bc27e7387dmsh38d411a3abc9e35plea17cjsnccd1838ac7b7"
         self.api_host = "therundown-therundown-v1.p.rapidapi.com"
         self.api_base = f"https://{self.api_host}"
         self.headers = {
@@ -34,4 +34,6 @@ class RundownClient:
             return response.json()
         except requests.exceptions.RequestException as e:
             print(f"Error fetching The Rundown events: {e}")
+            if "403" in str(e) or "not subscribed" in str(e).lower():
+                print("API key not subscribed to The Rundown API. Please subscribe on RapidAPI.")
             return {"events": []}
