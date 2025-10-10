@@ -150,3 +150,22 @@ export interface RundownResponse {
   timestamp: string;
 }
 
+export interface DomeComparison {
+  title: string;
+  price_spread: number;
+  best_platform: "polymarket" | "kalshi" | "limitless";
+  arbitrage_opportunity: boolean;
+  polymarket: MarketData | null;
+  kalshi: MarketData | null;
+  limitless: MarketData | null;
+}
+
+export interface DomeResponse {
+  comparisons: DomeComparison[];
+  summary: {
+    total_comparisons: number;
+    arbitrage_opportunities: number;
+  };
+  timestamp: string;
+}
+

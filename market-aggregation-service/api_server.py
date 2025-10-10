@@ -15,6 +15,7 @@ from typing import List, Dict, Any, Optional
 import sys
 import os
 from dateutil import parser as date_parser
+import configparser
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -23,9 +24,14 @@ from api_clients.kalshi_client import KalshiClient
 from api_clients.limitless_client import LimitlessClient
 from api_clients.odds_api_client import OddsAPIClient
 from api_clients.rundown_client import RundownClient
+from api_clients.dome_client import DomeAPIClient
 from aggregator import MarketAggregator
 from market_mappings import MANUAL_MAPPINGS
 from nfl_teams import normalize_nfl_team_name
+
+# Read configuration
+config = configparser.ConfigParser()
+config.read(os.path.join(os.path.dirname(__file__), 'config'))
 
 app = FastAPI(title="Market Aggregator API", version="1.0.0")
 
@@ -40,10 +46,11 @@ app.add_middleware(
 
 # Initialize clients
 poly_client = PolymarketClient()
-kalshi_client = KalshiClient()
+kalshi_client = KalshiClient(api_key=config.get('API_KEYS', 'KALSHI_API_KEY', fallback=None))
 limitless_client = LimitlessClient()
-rundown_client = RundownClient()
-odds_api_key = "db06be1d18367c369444aa40d6a25499"
+rundown_client = RundownClient(api_key=config.get('API_KEYS', 'RUNDOWN_API_KEY', fallback=None))
+dome_client = DomeAPIClient(api_key=config.get('API_KEYS', 'DOME_API_KEY', fallback=None))
+odds_api_key = config.get('API_KEYS', 'ODDS_API_KEY', fallback=None)
 odds_client = OddsAPIClient(odds_api_key)
 
 
@@ -534,6 +541,113 @@ async def ws_politics(websocket: WebSocket):
     async def fetch():
         return await get_politics_markets()
     await push_periodic(websocket, fetch)
+
+
+@app.get("/dome")
+async def get_dome_markets(
+    sport: Optional[str] = None,
+    date: Optional[str] = None,
+    polymarket_market_slug: Optional[str] = None,
+    kalshi_event_ticker: Optional[str] = None,
+):
+    """
+    Get market comparisons from Dome API and enrich with data from Polymarket and Kalshi
+    """
+    try:
+        if sport and date:
+            markets = dome_client.get_matching_markets_by_sport_and_date(sport, date)
+        elif polymarket_market_slug or kalshi_event_ticker:
+            slugs = polymarket_market_slug.split(',') if polymarket_market_slug else None
+            tickers = kalshi_event_ticker.split(',') if kalshi_event_ticker else None
+            markets = dome_client.get_matching_markets_by_slugs(slugs, tickers)
+        else:
+            return {
+                "comparisons": [],
+                "summary": {"total_comparisons": 0, "arbitrage_opportunities": 0},
+                "timestamp": datetime.now().isoformat(),
+            }
+
+        if not markets:
+            return {
+                "comparisons": [],
+                "summary": {"total_comparisons": 0, "arbitrage_opportunities": 0},
+                "timestamp": datetime.now().isoformat(),
+            }
+
+        comparison_data = []
+        for title, platforms in markets.items():
+            poly_market_info = next((p for p in platforms if p['platform'] == 'POLYMARKET'), None)
+            kalshi_market_info = next((p for p in platforms if p['platform'] == 'KALSHI'), None)
+
+            poly_market = None
+            if poly_market_info and poly_market_info.get('market_slug'):
+                try:
+                    poly_market = poly_client.fetch_market_by_slug(poly_market_info['market_slug'])
+                except Exception as e:
+                    print(f"Error fetching Polymarket market {poly_market_info['market_slug']}: {e}")
+            
+            kalshi_market = None
+            if kalshi_market_info and kalshi_market_info.get('event_ticker'):
+                try:
+                    kalshi_markets = kalshi_client.fetch_market_by_event_ticker(kalshi_market_info['event_ticker'])
+                    if kalshi_markets:
+                        kalshi_market = kalshi_markets[0]
+                except Exception as e:
+                    print(f"Error fetching Kalshi market {kalshi_market_info['event_ticker']}: {e}")
+            
+            if not poly_market and not kalshi_market:
+                continue
+
+            price_spread = 0
+            best_platform = None
+            arbitrage = False
+
+            if poly_market and kalshi_market:
+                poly_yes_price = next((o.price for o in poly_market.outcomes if 'yes' in o.name.lower()), 
+                                      poly_market.outcomes[0].price if poly_market.outcomes else None)
+                kalshi_yes_price = next((o.price for o in kalshi_market.outcomes if 'yes' in o.name.lower()), None)
+                
+                if poly_yes_price is not None and kalshi_yes_price is not None:
+                    price_spread = abs(poly_yes_price - kalshi_yes_price) * 100
+                    best_platform = "polymarket" if poly_yes_price > kalshi_yes_price else "kalshi"
+                    arbitrage = price_spread > 5.0
+            elif poly_market:
+                best_platform = "polymarket"
+            elif kalshi_market:
+                best_platform = "kalshi"
+
+
+            comparison_item = {
+                "title": title,
+                "price_spread": price_spread,
+                "best_platform": best_platform,
+                "arbitrage_opportunity": arbitrage,
+                "polymarket": {
+                    "market_id": poly_market.market_id,
+                    "outcomes": [{"name": o.name, "price": o.price, "american_odds": o.american_odds} for o in poly_market.outcomes],
+                    "volume": poly_market.total_volume,
+                    "liquidity": poly_market.liquidity
+                } if poly_market else None,
+                "kalshi": {
+                    "market_id": kalshi_market.market_id,
+                    "outcomes": [{"name": o.name, "price": o.price, "american_odds": o.american_odds} for o in kalshi_market.outcomes],
+                    "volume": kalshi_market.total_volume,
+                    "liquidity": kalshi_market.liquidity
+                } if kalshi_market else None,
+                "limitless": None
+            }
+            comparison_data.append(comparison_item)
+            
+        return {
+            "comparisons": comparison_data,
+            "summary": {
+                "total_comparisons": len(comparison_data),
+                "arbitrage_opportunities": sum(1 for c in comparison_data if c.get("arbitrage_opportunity"))
+            },
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/crypto")

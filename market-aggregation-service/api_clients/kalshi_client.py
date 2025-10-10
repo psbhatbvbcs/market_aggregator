@@ -11,6 +11,7 @@ from dateutil import parser as date_parser
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 import sys
+import configparser
 
 # Add parent directory to path to import models
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -20,12 +21,16 @@ from models import (
     normalize_market_title, extract_team_names
 )
 
+# Read configuration for fallback
+config = configparser.ConfigParser()
+config.read(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'config'))
+
 class KalshiClient:
     """Client for interacting with Kalshi API"""
     
     def __init__(self, api_key: Optional[str] = None, private_key_path: Optional[str] = None):
         self.api_base = "https://api.elections.kalshi.com/trade-api/v2"
-        self.api_key = api_key or os.getenv("KALSHI_API_KEY")
+        self.api_key = api_key or os.getenv("KALSHI_API_KEY") or config.get('API_KEYS', 'KALSHI_API_KEY', fallback=None)
         self.private_key_path = private_key_path or os.getenv("KALSHI_PRIVATE_KEY_PATH")
         self.token = None
         self.token_expiry = 0

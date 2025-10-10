@@ -152,7 +152,19 @@ class PolymarketClient:
         except requests.exceptions.RequestException as e:
             print(f"Error fetching Polymarket market {market_id}: {e}")
             return None
-    
+
+    def fetch_market_by_slug(self, market_slug: str) -> Optional[UnifiedMarket]:
+        """Fetch a single market by slug"""
+        url = f"{self.gamma_api_base}/events/slug/{market_slug}"
+        try:
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
+            market_data = response.json()
+            return self._convert_to_unified(market_data)
+        except requests.exceptions.RequestException as e:
+            print(f"Error fetching Polymarket market by slug {market_slug}: {e}")
+            return None
+
     def get_orderbook(self, token_id: str) -> Optional[Dict[str, Any]]:
         """Get orderbook for a specific token"""
         url = f"{self.clob_api_base}/book"
@@ -183,16 +195,28 @@ class PolymarketClient:
     def _convert_to_unified(self, raw_market: Dict[str, Any]) -> Optional[UnifiedMarket]:
         """Convert Polymarket market to unified format"""
         try:
-            # Extract basic info
-            market_id = raw_market.get("conditionId") or raw_market.get("id")
-            question = raw_market.get("question", "")
-            
+            # Data from /events/slug/{slug} is different
+            if 'markets' in raw_market and raw_market['markets']:
+                # Find the moneyline market from the list of markets in the event
+                moneyline_market = next((m for m in raw_market['markets'] if m.get('sportsMarketType') == 'moneyline'), None)
+                if not moneyline_market:
+                    # If no moneyline market, maybe it's the first one? A bit risky.
+                    moneyline_market = raw_market['markets'][0]
+                
+                market_details = moneyline_market
+                market_id = market_details.get("id")
+                question = raw_market.get("title", "") # Use the top-level event title
+                outcomes_str = market_details.get("outcomes", "[]")
+                prices_str = market_details.get("outcomePrices", "[]")
+            else:
+                market_details = raw_market
+                market_id = raw_market.get("conditionId") or raw_market.get("id")
+                question = raw_market.get("question", "")
+                outcomes_str = market_details.get("outcomes", "[]")
+                prices_str = market_details.get("outcomePrices", "[]")
+
             if not market_id or not question:
                 return None
-            
-            # Parse outcomes and prices
-            outcomes_str = raw_market.get("outcomes", "[]")
-            prices_str = raw_market.get("outcomePrices", "[]")
             
             try:
                 outcomes = json.loads(outcomes_str) if isinstance(outcomes_str, str) else outcomes_str
@@ -262,6 +286,19 @@ class PolymarketClient:
                 sport = event.get("sportLabel")
                 league = event.get("leagueName")
             
+            # Data from /events/slug/{slug} is different
+            if 'markets' in raw_market and raw_market['markets']:
+                market_details = raw_market['markets'][0]
+                total_volume = market_details.get("volumeNum")
+                liquidity = market_details.get("liquidityNum")
+                is_active = market_details.get("active", True)
+                is_closed = market_details.get("closed", False)
+            else:
+                total_volume=raw_market.get("volumeNum")
+                liquidity=raw_market.get("liquidityNum")
+                is_active=raw_market.get("active", True)
+                is_closed=raw_market.get("closed", False)
+
             # Create normalized title and extract teams
             normalized_title = normalize_market_title(question)
             normalized_teams = extract_team_names(question)
@@ -279,10 +316,10 @@ class PolymarketClient:
                 subcategory=tag_name,
                 sport=sport,
                 league=league,
-                total_volume=raw_market.get("volumeNum"),
-                liquidity=raw_market.get("liquidityNum"),
-                is_active=raw_market.get("active", True),
-                is_closed=raw_market.get("closed", False),
+                total_volume=total_volume,
+                liquidity=liquidity,
+                is_active=is_active,
+                is_closed=is_closed,
                 raw_data=raw_market,
                 normalized_title=normalized_title,
                 normalized_teams=normalized_teams

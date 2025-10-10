@@ -1,15 +1,16 @@
 import os
 import requests
 from datetime import date
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 class RundownClient:
     """
     Client for The Rundown API.
-    Requires RAPIDAPI_KEY environment variable to be set.
     """
-    def __init__(self):
-        self.api_key = "15b8acc4edmshc6919219226b9c9p131160jsna478e4d39e40"
+    def __init__(self, api_key: Optional[str]):
+        if not api_key:
+            raise ValueError("RundownClient requires an api_key")
+        self.api_key = api_key
         self.api_host = "therundown-therundown-v1.p.rapidapi.com"
         self.api_base = f"https://{self.api_host}"
         self.headers = {

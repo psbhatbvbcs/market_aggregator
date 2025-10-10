@@ -11,7 +11,8 @@ import {
   TraditionalOddsResponse, 
   PoliticsResponse,
   CryptoResponse,
-  RundownResponse
+  RundownResponse,
+  DomeResponse
 } from "@/lib/market-types";
 import { RefreshCw, AlertCircle } from "lucide-react";
 
@@ -24,11 +25,21 @@ export default function MarketAggregatorDashboard() {
   const [politics, setPolitics] = useState<PoliticsResponse | null>(null);
   const [crypto, setCrypto] = useState<CryptoResponse | null>(null);
   const [rundown, setRundown] = useState<RundownResponse | null>(null);
+  const [dome, setDome] = useState<DomeResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [domeLoading, setDomeLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  const [activeTab, setActiveTab] = useState("nfl");
+  const [activeTab, setActiveTab] = useState("dome");
   const [nflSubTab, setNflSubTab] = useState<"crypto" | "traditional">("crypto");
+
+  const [domeSearch, setDomeSearch] = useState({
+    sport: "nfl",
+    date: "",
+    polymarket_market_slug: "",
+    kalshi_event_ticker: "",
+    searchType: "sport_date",
+  });
 
   // Fetch NFL Crypto Markets
   const fetchNFLCrypto = async () => {
@@ -92,6 +103,52 @@ export default function MarketAggregatorDashboard() {
     } catch (err) {
       console.error("Error fetching rundown markets:", err);
       setError("Failed to fetch rundown markets");
+    }
+  };
+
+  // Fetch Dome Markets
+  const fetchDome = async () => {
+    if (domeLoading) return;
+    setDomeLoading(true);
+    setError(null);
+    setDome(null);
+
+    let queryString = "";
+    if (domeSearch.searchType === "sport_date") {
+      if (domeSearch.sport && domeSearch.date) {
+        queryString = `sport=${domeSearch.sport}&date=${domeSearch.date}`;
+      } else {
+        setError("Sport and date are required for this search type.");
+        setDomeLoading(false);
+        return;
+      }
+    } else {
+      const slugs = domeSearch.polymarket_market_slug.trim();
+      const tickers = domeSearch.kalshi_event_ticker.trim();
+      if (slugs) {
+        queryString += `polymarket_market_slug=${encodeURIComponent(slugs)}`;
+      }
+      if (tickers) {
+        if (queryString) queryString += "&";
+        queryString += `kalshi_event_ticker=${encodeURIComponent(tickers)}`;
+      }
+      if (!queryString) {
+        setError("At least one slug or ticker is required.");
+        setDomeLoading(false);
+        return;
+      }
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/dome?${queryString}`);
+      if (!response.ok) throw new Error("Failed to fetch dome markets");
+      const data = await response.json();
+      setDome(data);
+    } catch (err) {
+      console.error("Error fetching dome markets:", err);
+      setError("Failed to fetch dome markets");
+    } finally {
+      setDomeLoading(false);
     }
   };
 
@@ -208,6 +265,20 @@ export default function MarketAggregatorDashboard() {
     };
   }, []);
 
+  const handleDomeSearchChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setDomeSearch(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleDomeSearchTypeChange = (value: string) => {
+    setDomeSearch(prev => ({ ...prev, searchType: value }));
+  };
+
+  const handleDomeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchDome();
+  };
+
   return (
     <div className="max-w-7xl mx-auto">
       {/* Header */}
@@ -235,7 +306,8 @@ export default function MarketAggregatorDashboard() {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5 max-w-md">
+        <TabsList className="grid w-full grid-cols-6 max-w-lg">
+          <TabsTrigger value="dome">Dome</TabsTrigger>
           <TabsTrigger value="nfl">NFL</TabsTrigger>
           <TabsTrigger value="politics">Politics</TabsTrigger>
           <TabsTrigger value="crypto">Crypto</TabsTrigger>
@@ -363,6 +435,94 @@ export default function MarketAggregatorDashboard() {
               )}
             </div>
           )}
+        </TabsContent>
+
+        {/* Dome Tab */}
+        <TabsContent value="dome" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Dome Market Search</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleDomeSubmit}>
+                <Tabs value={domeSearch.searchType} onValueChange={handleDomeSearchTypeChange} className="mb-4">
+                  <TabsList>
+                    <TabsTrigger value="sport_date">By Sport & Date</TabsTrigger>
+                    <TabsTrigger value="slug_ticker">By Slug/Ticker</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+
+                {domeSearch.searchType === 'sport_date' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="sport" className="block text-sm font-medium text-gray-700">Sport</label>
+                      <select id="sport" name="sport" value={domeSearch.sport} onChange={handleDomeSearchChange} className="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                        <option value="nfl">NFL</option>
+                        <option value="mlb">MLB</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="date" className="block text-sm font-medium text-gray-700">Date</label>
+                      <input type="date" id="date" name="date" value={domeSearch.date} onChange={handleDomeSearchChange} className="mt-1 block w-full p-2 border border-gray-300 rounded-md" />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="polymarket_market_slug" className="block text-sm font-medium text-gray-700">Polymarket Slugs (comma-separated)</label>
+                      <input type="text" id="polymarket_market_slug" name="polymarket_market_slug" value={domeSearch.polymarket_market_slug} onChange={handleDomeSearchChange} className="mt-1 block w-full p-2 border border-gray-300 rounded-md" />
+                    </div>
+                    <div>
+                      <label htmlFor="kalshi_event_ticker" className="block text-sm font-medium text-gray-700">Kalshi Tickers (comma-separated)</label>
+                      <input type="text" id="kalshi_event_ticker" name="kalshi_event_ticker" value={domeSearch.kalshi_event_ticker} onChange={handleDomeSearchChange} className="mt-1 block w-full p-2 border border-gray-300 rounded-md" />
+                    </div>
+                  </div>
+                )}
+                <div className="mt-4">
+                  <button type="submit" disabled={domeLoading} className="px-4 py-2 bg-blue-600 text-white rounded-md disabled:bg-gray-400">
+                    {domeLoading ? 'Searching...' : 'Search'}
+                  </button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+
+          {dome && (
+            <>
+              <Card className="mb-4">
+                <CardHeader>
+                  <CardTitle>Summary</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-sm text-gray-600">Comparisons</div>
+                      <div className="text-2xl font-bold">{dome.summary.total_comparisons}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-600">Arbitrage</div>
+                      <div className="text-2xl font-bold text-yellow-600">{dome.summary.arbitrage_opportunities}</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {dome.comparisons.length > 0 ? (
+                <div className="space-y-6">
+                  {dome.comparisons.map((comp, idx) => (
+                    <CryptoComparisonGroup key={idx} comparison={comp as any} />
+                  ))}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="py-8 text-center text-gray-500">
+                    No matching markets found for the given criteria.
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          )}
+
         </TabsContent>
 
         {/* Politics Tab */}
