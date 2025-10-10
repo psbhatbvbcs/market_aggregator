@@ -13,6 +13,7 @@ import {
   CryptoResponse,
   OthersResponse,
   OthersComparison,
+  RundownResponse,
 } from "@/lib/market-types";
 import { RefreshCw, AlertCircle } from "lucide-react";
 
@@ -25,6 +26,16 @@ export default function MarketAggregatorDashboard() {
   const [politics, setPolitics] = useState<PoliticsResponse | null>(null);
   const [crypto, setCrypto] = useState<CryptoResponse | null>(null);
   const [others, setOthers] = useState<OthersResponse | null>(null);
+  const [rundown, setRundown] = useState<RundownResponse | null>(null);
+  const [rundownDate, setRundownDate] = useState<string>(() => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  });
+  const [rundownSportId, setRundownSportId] = useState<number>(2); // 2=NFL default
+  const [rundownLoading, setRundownLoading] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
@@ -32,6 +43,29 @@ export default function MarketAggregatorDashboard() {
   const [nflSubTab, setNflSubTab] = useState<"crypto" | "traditional">("crypto");
   const [othersOffset, setOthersOffset] = useState(0);
   const OTHERS_LIMIT = 10;
+
+  // Helpers: American odds utils for highlighting best price (lowest implied probability)
+  const americanToImpliedProb = (odds: number | null | undefined) => {
+    if (odds === null || odds === undefined || Number.isNaN(odds)) return Infinity;
+    const o = Number(odds);
+    if (o === 0) return Infinity;
+    if (o > 0) return 100 / (o + 100);
+    return (-o) / ((-o) + 100);
+  };
+
+  const getBestMoneyline = (values: Array<{ affiliate_name: string; value: number | null | undefined }>) => {
+    let best = { affiliate_name: "", value: null as number | null };
+    let bestProb = Infinity;
+    for (const v of values) {
+      if (v.value === null || v.value === undefined) continue;
+      const p = americanToImpliedProb(v.value);
+      if (p < bestProb) {
+        bestProb = p;
+        best = { affiliate_name: v.affiliate_name, value: v.value };
+      }
+    }
+    return best;
+  };
 
   // Fetch NFL Crypto Markets
   const fetchNFLCrypto = async () => {
@@ -103,6 +137,24 @@ export default function MarketAggregatorDashboard() {
     }
   };
 
+  // Fetch Rundown data
+  const fetchRundown = async (dateOverride?: string, sportOverride?: number) => {
+    try {
+      const dateToUse = dateOverride ?? rundownDate;
+      const sportToUse = sportOverride ?? rundownSportId;
+      setRundownLoading(true);
+      const params = new URLSearchParams({ date: dateToUse, sport_id: String(sportToUse) });
+      const response = await fetch(`${API_BASE_URL}/rundown?${params.toString()}`);
+      if (!response.ok) throw new Error("Failed to fetch rundown data");
+      const data = await response.json();
+      setRundown(data);
+    } catch (err) {
+      console.error("Error fetching rundown data:", err);
+      setError("Failed to fetch rundown data");
+    }
+    setRundownLoading(false);
+  };
+
   // Fetch all data
   const fetchAllData = async () => {
     setLoading(true);
@@ -134,6 +186,8 @@ export default function MarketAggregatorDashboard() {
           await fetchCrypto();
         } else if (activeTab === "others") {
           await fetchOthers();
+        } else if (activeTab === "rundown") {
+          await fetchRundown();
         }
         setLastUpdate(new Date());
         setLoading(false);
@@ -143,7 +197,7 @@ export default function MarketAggregatorDashboard() {
     tick();
     interval = setInterval(tick, 10000);
     return () => clearInterval(interval);
-  }, [activeTab, nflSubTab, othersOffset]);
+  }, [activeTab, nflSubTab, othersOffset, rundownDate, rundownSportId]);
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -481,38 +535,118 @@ export default function MarketAggregatorDashboard() {
                 </CardContent>
               </Card>
 
+              {/* Date selector + Events */}
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">Select date</span>
+                  <input
+                    type="date"
+                    value={rundownDate}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setRundownDate(v);
+                      fetchRundown(v, undefined);
+                    }}
+                    className="px-3 py-2 border rounded-md text-sm"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">Sport</span>
+                  <div className="flex bg-gray-100 rounded-lg p-1">
+                    {[{ id: 2, name: 'NFL' }, { id: 3, name: 'MLB' }, { id: 4, name: 'NBA' }, { id: 6, name: 'NHL' }].map(s => (
+                      <button
+                        key={s.id}
+                        onClick={() => {
+                          setRundownSportId(s.id);
+                          fetchRundown(undefined, s.id);
+                        }}
+                        className={`px-3 py-1 rounded-md text-sm font-medium ${rundownSportId === s.id ? 'bg-white shadow text-gray-900' : 'text-gray-700 hover:text-gray-900'}`}
+                      >
+                        {s.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               {/* Events */}
-              {rundown.events && rundown.events.length > 0 ? (
+              {rundownLoading ? (
+                <Card>
+                  <CardContent className="py-8 text-center text-gray-500">Loading…</CardContent>
+                </Card>
+              ) : rundown.events && rundown.events.length > 0 ? (
                 <div className="space-y-6">
-                  {rundown.events.map((event) => (
-                    <Card key={event.event_id}>
-                      <CardHeader>
-                        <CardTitle>{event.away_team} @ {event.home_team}</CardTitle>
-                        <div className="text-sm text-gray-500">{new Date(event.event_date).toLocaleString()}</div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          <div className="grid grid-cols-3 font-bold text-sm">
-                            <span>Bookmaker</span>
-                            <span className="text-right">{event.away_team}</span>
-                            <span className="text-right">{event.home_team}</span>
-                          </div>
-                          {event.lines.map((line) => (
-                            <div key={line.affiliate_name} className="grid grid-cols-3 text-sm border-t pt-2">
-                              <span>{line.affiliate_name}</span>
-                              <span className="text-right">{line.moneyline_away > 0 ? `+${line.moneyline_away}` : line.moneyline_away}</span>
-                              <span className="text-right">{line.moneyline_home > 0 ? `+${line.moneyline_home}` : line.moneyline_home}</span>
+                  {rundown.events
+                    .filter((e) => (e.event_date || "").slice(0, 10) === rundownDate)
+                    .map((event) => {
+                    const uniqAffiliates = Array.from(new Set(event.lines.map(l => l.affiliate_name)));
+                    const bestAway = getBestMoneyline(event.lines.map(l => ({ affiliate_name: l.affiliate_name, value: l.moneyline_away })));
+                    const bestHome = getBestMoneyline(event.lines.map(l => ({ affiliate_name: l.affiliate_name, value: l.moneyline_home })));
+                    // Stable alphabetical order for bookmakers
+                    const sortedLines = [...event.lines].sort((a, b) => a.affiliate_name.localeCompare(b.affiliate_name));
+
+                    return (
+                      <Card key={event.event_id}>
+                        <CardHeader>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <CardTitle>{event.away_team} @ {event.home_team}</CardTitle>
+                              <div className="text-sm text-gray-500">{new Date(event.event_date).toLocaleString()}</div>
                             </div>
-                          ))}
-                        </div>
+                            <div className="flex items-center gap-3 text-sm">
+                              <span className="px-2 py-1 rounded bg-blue-50 text-blue-700 font-medium">Best Away: {bestAway.value !== null ? (bestAway.value! > 0 ? `+${bestAway.value}` : bestAway.value) : "--"} {bestAway.affiliate_name && `(${bestAway.affiliate_name})`}</span>
+                              <span className="px-2 py-1 rounded bg-green-50 text-green-700 font-medium">Best Home: {bestHome.value !== null ? (bestHome.value! > 0 ? `+${bestHome.value}` : bestHome.value) : "--"} {bestHome.affiliate_name && `(${bestHome.affiliate_name})`}</span>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="overflow-x-auto">
+                            <table className="min-w-full text-sm">
+                              <thead>
+                                <tr className="text-gray-600">
+                                  <th className="text-left py-2 pr-4 w-40">Bookmaker</th>
+                                  <th className="text-center py-2 pr-4">{event.away_team}</th>
+                                  <th className="text-center py-2 pr-4">{event.home_team}</th>
+                                  {/* dynamic spacer to mimic richer grids */}
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y">
+                                {sortedLines.map((line) => {
+                                  const away = line.moneyline_away;
+                                  const home = line.moneyline_home;
+                                  const highlightAway = bestAway.value !== null && away === bestAway.value;
+                                  const highlightHome = bestHome.value !== null && home === bestHome.value;
+                                  return (
+                                    <tr key={line.affiliate_name} className="align-middle">
+                                      <td className="py-2 pr-4 text-gray-800 font-medium whitespace-nowrap">{line.affiliate_name}</td>
+                                      <td className={`py-2 pr-4 text-center ${highlightAway ? "bg-yellow-50 text-yellow-800 font-semibold rounded" : ""}`}>
+                                        {away === null || away === undefined ? "--" : away > 0 ? `+${away}` : away}
+                                      </td>
+                                      <td className={`py-2 pr-4 text-center ${highlightHome ? "bg-yellow-50 text-yellow-800 font-semibold rounded" : ""}`}>
+                                        {home === null || home === undefined ? "--" : home > 0 ? `+${home}` : home}
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                  {rundown.events.filter((e) => (e.event_date || "").slice(0,10) === rundownDate).length === 0 && (
+                    <Card>
+                      <CardContent className="py-8 text-center text-gray-500">
+                        No events found for {rundownDate}.
                       </CardContent>
                     </Card>
-                  ))}
+                  )}
                 </div>
               ) : (
                 <Card>
                   <CardContent className="py-8 text-center text-gray-500">
-                    No rundown data available at the moment. Please ensure your RAPIDAPI_KEY is set correctly.
+                    {rundownLoading ? 'Loading…' : 'No games at the moment'}
                   </CardContent>
                 </Card>
               )}
