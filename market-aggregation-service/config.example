@@ -1,0 +1,11 @@
+[API_KEYS]
+# Get your API keys from the respective services:
+# - Kalshi: https://traders.kalshi.com/
+# - The Odds API: https://the-odds-api.com/
+# - The Rundown API: https://rapidapi.com/therundown/api/therundown-therundown-v1
+# - Dome API: https://www.domeapi.io/
+
+KALSHI_API_KEY=your_kalshi_api_key_here
+ODDS_API_KEY=your_odds_api_key_here
+RUNDOWN_API_KEY=your_rundown_api_key_here
+DOME_API_KEY=your_dome_api_key_here
