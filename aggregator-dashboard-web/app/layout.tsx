@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Servers Dashboard",
-  description: "Analytics dashboard for Discord and Telegram servers",
+  title: "Market Aggregator Dashboard",
+  description: "Real-time prediction market aggregation dashboard",
 };
 
 export default function RootLayout({
@@ -16,7 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={`${inter.className} bg-[#0a0a0a]`}>{children}</body>
     </html>
   );
 } 

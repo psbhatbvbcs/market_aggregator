@@ -291,358 +291,278 @@ export default function MarketAggregatorDashboard() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">Market Aggregator Dashboard</h1>
-        <div className="flex items-center gap-4 text-sm text-gray-600">
-          <div className="flex items-center gap-2">
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            {lastUpdate && (
-              <span>Last updated: {lastUpdate.toLocaleTimeString()}</span>
+    <div className="min-h-screen bg-[#0a0a0a] text-white">
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="mb-8 flex items-center justify-between">
+          <h1 className="text-2xl font-semibold text-white">Market Aggregator Dashboard</h1>
+          <button className="px-6 py-2 bg-white text-black rounded-lg font-medium hover:bg-gray-100 transition-colors">
+            Connect Wallet
+          </button>
+        </div>
+
+        {/* Error Display */}
+        {error && (
+          <div className="mb-4 p-4 bg-red-900/20 border border-red-500/30 rounded flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-red-400" />
+            <span className="text-red-300">{error}</span>
+          </div>
+        )}
+
+        {/* Stats Cards */}
+        {(nflCrypto || politics || crypto || dome) && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="bg-[#1a1a1a] rounded-lg p-6 border border-gray-800">
+              <div className="text-sm text-gray-400 mb-2">Comparisons</div>
+              <div className="text-4xl font-bold">
+                {(nflCrypto?.summary.total_comparisons || 0) + 
+                 (politics?.summary.total_comparisons || 0) + 
+                 (crypto?.summary.total_comparisons || 0) +
+                 (dome?.summary.total_comparisons || 0)}
+              </div>
+            </div>
+            <div className="bg-[#1a1a1a] rounded-lg p-6 border border-gray-800">
+              <div className="text-sm text-gray-400 mb-2">Polymarket</div>
+              <div className="text-4xl font-bold">
+                {(nflCrypto?.summary.polymarket_markets || 0)}
+              </div>
+            </div>
+            <div className="bg-[#1a1a1a] rounded-lg p-6 border border-gray-800">
+              <div className="text-sm text-gray-400 mb-2">Kalshi</div>
+              <div className="text-4xl font-bold">
+                {(nflCrypto?.summary.kalshi_markets || 0)}
+              </div>
+            </div>
+            <div className="bg-[#1a1a1a] rounded-lg p-6 border border-gray-800">
+              <div className="text-sm text-gray-400 mb-2">Arbitrage</div>
+              <div className="text-4xl font-bold">
+                {(nflCrypto?.summary.arbitrage_opportunities || 0) + 
+                 (politics?.summary.arbitrage_opportunities || 0) + 
+                 (crypto?.summary.arbitrage_opportunities || 0) +
+                 (dome?.summary.arbitrage_opportunities || 0)}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Main Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <div className="flex items-center justify-between mb-6">
+            <TabsList className="bg-transparent border-0 h-auto p-0 gap-6">
+              <TabsTrigger 
+                value="dome" 
+                className="data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none bg-transparent text-gray-400 border-0 px-0 pb-2 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-white hover:text-gray-200"
+              >
+                Dome
+              </TabsTrigger>
+              <TabsTrigger 
+                value="nfl"
+                className="data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none bg-transparent text-gray-400 border-0 px-0 pb-2 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-white hover:text-gray-200"
+              >
+                NFL
+              </TabsTrigger>
+              <TabsTrigger 
+                value="crypto"
+                className="data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none bg-transparent text-gray-400 border-0 px-0 pb-2 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-white hover:text-gray-200"
+              >
+                Crypto
+              </TabsTrigger>
+              <TabsTrigger 
+                value="politics"
+                className="data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none bg-transparent text-gray-400 border-0 px-0 pb-2 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-white hover:text-gray-200"
+              >
+                Politics
+              </TabsTrigger>
+              <TabsTrigger 
+                value="rundown"
+                className="data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none bg-transparent text-gray-400 border-0 px-0 pb-2 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-white hover:text-gray-200"
+              >
+                Rundown
+              </TabsTrigger>
+              <TabsTrigger 
+                value="others"
+                className="data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none bg-transparent text-gray-400 border-0 px-0 pb-2 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-white hover:text-gray-200"
+              >
+                Others
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Market Selector */}
+            <select className="bg-[#1a1a1a] text-white border border-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-gray-600">
+              <option>Kalshi + Polymarket</option>
+            </select>
+          </div>
+
+          {/* NFL Tab */}
+          <TabsContent value="nfl" className="space-y-4">
+            {/* NFL Crypto Markets */}
+            {nflCrypto && (
+              <>
+                {/* Comparisons */}
+                {nflCrypto.comparisons.length > 0 ? (
+                  <div className="space-y-4">
+                    {nflCrypto.comparisons.map((comp, idx) => (
+                      <ComparisonGroup key={idx} comparison={comp} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-500 py-8">
+                    No comparisons available at the moment
+                  </div>
+                )}
+              </>
             )}
-          </div>
-          <span className="text-gray-400">•</span>
-          <span>Auto-refresh: 5s</span>
-        </div>
-      </div>
+          </TabsContent>
 
-      {/* Error Display */}
-      {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded flex items-center gap-2">
-          <AlertCircle className="w-5 h-5 text-red-600" />
-          <span className="text-red-800">{error}</span>
-        </div>
-      )}
-
-      {/* Main Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-6 max-w-lg">
-          <TabsTrigger value="dome">Dome</TabsTrigger>
-          <TabsTrigger value="nfl">NFL</TabsTrigger>
-          <TabsTrigger value="politics">Politics</TabsTrigger>
-          <TabsTrigger value="crypto">Crypto</TabsTrigger>
-          <TabsTrigger value="rundown">Rundown</TabsTrigger>
-          <TabsTrigger value="others">Others</TabsTrigger>
-          
-        </TabsList>
-
-        {/* NFL Tab */}
-        <TabsContent value="nfl" className="space-y-4">
-          {/* NFL Sub-tabs */}
-          <div className="flex gap-2 mb-4">
-            <button
-              onClick={() => setNflSubTab("crypto")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                nflSubTab === "crypto"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              Kalshi + Polymarket
-            </button>
-            <button
-              onClick={() => setNflSubTab("traditional")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                nflSubTab === "traditional"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              Traditional Sportsbooks
-            </button>
-          </div>
-
-          {/* NFL Crypto Markets */}
-          {nflSubTab === "crypto" && (
-            <div>
-              {nflCrypto && (
-                <>
-                  {/* Summary */}
-                  <Card className="mb-4">
-                    <CardHeader>
-                      <CardTitle>Summary</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div>
-                          <div className="text-sm text-gray-600">Comparisons</div>
-                          <div className="text-2xl font-bold">{nflCrypto.summary.total_comparisons}</div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-gray-600">Polymarket</div>
-                          <div className="text-2xl font-bold text-purple-600">{nflCrypto.summary.polymarket_markets}</div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-gray-600">Kalshi</div>
-                          <div className="text-2xl font-bold text-blue-600">{nflCrypto.summary.kalshi_markets}</div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-gray-600">Arbitrage</div>
-                          <div className="text-2xl font-bold text-yellow-600">{nflCrypto.summary.arbitrage_opportunities}</div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Comparisons */}
-                  {nflCrypto.comparisons.length > 0 ? (
-                    <div className="space-y-6">
-                      {nflCrypto.comparisons.map((comp, idx) => (
-                        <ComparisonGroup key={idx} comparison={comp} />
-                      ))}
-                    </div>
-                  ) : (
-                    <Card>
-                      <CardContent className="py-8 text-center text-gray-500">
-                        No comparisons available at the moment
-                      </CardContent>
-                    </Card>
-                  )}
-                </>
-              )}
-            </div>
-          )}
-
-          {/* NFL Traditional Odds */}
-          {nflSubTab === "traditional" && (
-            <div>
-              {nflTraditional && (
-                <>
-                  {/* Summary */}
-                  <Card className="mb-4">
-                    <CardHeader>
-                      <CardTitle>Summary</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <div className="text-sm text-gray-600">Games</div>
-                          <div className="text-2xl font-bold">{nflTraditional.summary.total_games}</div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-gray-600">Bookmakers</div>
-                          <div className="text-2xl font-bold">{nflTraditional.summary.bookmakers}</div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Games */}
-                  {nflTraditional.games.length > 0 ? (
-                    <div>
-                      {nflTraditional.games.map((game, idx) => (
-                        <TraditionalOddsCard key={idx} game={game} />
-                      ))}
-                    </div>
-                  ) : (
-                    <Card>
-                      <CardContent className="py-8 text-center text-gray-500">
-                        No games available at the moment
-                      </CardContent>
-                    </Card>
-                  )}
-                </>
-              )}
-            </div>
-          )}
-        </TabsContent>
-
-        {/* Dome Tab */}
-        <TabsContent value="dome" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Dome Market Search</CardTitle>
-            </CardHeader>
-            <CardContent>
+          {/* Dome Tab */}
+          <TabsContent value="dome" className="space-y-4">
+            <div className="bg-[#1a1a1a] rounded-lg p-6 border border-gray-800">
+              <h3 className="text-xl font-semibold text-white mb-4">Dome Market Search</h3>
               <form onSubmit={handleDomeSubmit}>
                 <Tabs value={domeSearch.searchType} onValueChange={handleDomeSearchTypeChange} className="mb-4">
-                  <TabsList>
-                    <TabsTrigger value="sport_date">By Sport & Date</TabsTrigger>
-                    <TabsTrigger value="slug_ticker">By Slug/Ticker</TabsTrigger>
+                  <TabsList className="bg-[#0a0a0a] border border-gray-700">
+                    <TabsTrigger value="sport_date" className="data-[state=active]:bg-[#1a1a1a] data-[state=active]:text-white">By Sport & Date</TabsTrigger>
+                    <TabsTrigger value="slug_ticker" className="data-[state=active]:bg-[#1a1a1a] data-[state=active]:text-white">By Slug/Ticker</TabsTrigger>
                   </TabsList>
                 </Tabs>
 
                 {domeSearch.searchType === 'sport_date' ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="sport" className="block text-sm font-medium text-gray-700">Sport</label>
-                      <select id="sport" name="sport" value={domeSearch.sport} onChange={handleDomeSearchChange} className="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                      <label htmlFor="sport" className="block text-sm font-medium text-gray-300 mb-2">Sport</label>
+                      <select 
+                        id="sport" 
+                        name="sport" 
+                        value={domeSearch.sport} 
+                        onChange={handleDomeSearchChange} 
+                        className="w-full p-2 bg-[#0a0a0a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-gray-600"
+                      >
                         <option value="nfl">NFL</option>
                         <option value="mlb">MLB</option>
                       </select>
                     </div>
                     <div>
-                      <label htmlFor="date" className="block text-sm font-medium text-gray-700">Date</label>
-                      <input type="date" id="date" name="date" value={domeSearch.date} onChange={handleDomeSearchChange} className="mt-1 block w-full p-2 border border-gray-300 rounded-md" />
+                      <label htmlFor="date" className="block text-sm font-medium text-gray-300 mb-2">Date</label>
+                      <input 
+                        type="date" 
+                        id="date" 
+                        name="date" 
+                        value={domeSearch.date} 
+                        onChange={handleDomeSearchChange} 
+                        className="w-full p-2 bg-[#0a0a0a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-gray-600" 
+                      />
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     <div>
-                      <label htmlFor="polymarket_market_slug" className="block text-sm font-medium text-gray-700">Polymarket Slugs (comma-separated)</label>
-                      <input type="text" id="polymarket_market_slug" name="polymarket_market_slug" value={domeSearch.polymarket_market_slug} onChange={handleDomeSearchChange} className="mt-1 block w-full p-2 border border-gray-300 rounded-md" />
+                      <label htmlFor="polymarket_market_slug" className="block text-sm font-medium text-gray-300 mb-2">Polymarket Slugs (comma-separated)</label>
+                      <input 
+                        type="text" 
+                        id="polymarket_market_slug" 
+                        name="polymarket_market_slug" 
+                        value={domeSearch.polymarket_market_slug} 
+                        onChange={handleDomeSearchChange} 
+                        className="w-full p-2 bg-[#0a0a0a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-gray-600" 
+                      />
                     </div>
                     <div>
-                      <label htmlFor="kalshi_event_ticker" className="block text-sm font-medium text-gray-700">Kalshi Tickers (comma-separated)</label>
-                      <input type="text" id="kalshi_event_ticker" name="kalshi_event_ticker" value={domeSearch.kalshi_event_ticker} onChange={handleDomeSearchChange} className="mt-1 block w-full p-2 border border-gray-300 rounded-md" />
+                      <label htmlFor="kalshi_event_ticker" className="block text-sm font-medium text-gray-300 mb-2">Kalshi Tickers (comma-separated)</label>
+                      <input 
+                        type="text" 
+                        id="kalshi_event_ticker" 
+                        name="kalshi_event_ticker" 
+                        value={domeSearch.kalshi_event_ticker} 
+                        onChange={handleDomeSearchChange} 
+                        className="w-full p-2 bg-[#0a0a0a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-gray-600" 
+                      />
                     </div>
                   </div>
                 )}
                 <div className="mt-4">
-                  <button type="submit" disabled={domeLoading} className="px-4 py-2 bg-blue-600 text-white rounded-md disabled:bg-gray-400">
+                  <button 
+                    type="submit" 
+                    disabled={domeLoading} 
+                    className="px-6 py-2 bg-white text-black rounded-lg font-medium hover:bg-gray-100 disabled:bg-gray-600 disabled:text-gray-400 transition-colors"
+                  >
                     {domeLoading ? 'Searching...' : 'Search'}
                   </button>
                 </div>
               </form>
-            </CardContent>
-          </Card>
+            </div>
 
-          {dome && (
-            <>
-              <Card className="mb-4">
-                <CardHeader>
-                  <CardTitle>Summary</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <div className="text-sm text-gray-600">Comparisons</div>
-                      <div className="text-2xl font-bold">{dome.summary.total_comparisons}</div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-600">Arbitrage</div>
-                      <div className="text-2xl font-bold text-yellow-600">{dome.summary.arbitrage_opportunities}</div>
-                    </div>
+            {dome && (
+              <>
+                {dome.comparisons.length > 0 ? (
+                  <div className="space-y-4">
+                    {dome.comparisons.map((comp, idx) => (
+                      <CryptoComparisonGroup key={idx} comparison={comp as any} />
+                    ))}
                   </div>
-                </CardContent>
-              </Card>
-
-              {dome.comparisons.length > 0 ? (
-                <div className="space-y-6">
-                  {dome.comparisons.map((comp, idx) => (
-                    <CryptoComparisonGroup key={idx} comparison={comp as any} />
-                  ))}
-                </div>
-              ) : (
-                <Card>
-                  <CardContent className="py-8 text-center text-gray-500">
+                ) : (
+                  <div className="text-center text-gray-500 py-8">
                     No matching markets found for the given criteria.
-                  </CardContent>
-                </Card>
-              )}
-            </>
-          )}
-
-        </TabsContent>
-
-        {/* Politics Tab */}
-        <TabsContent value="politics" className="space-y-4">
-          {politics && (
-            <>
-              {/* Summary */}
-              <Card className="mb-4">
-                <CardHeader>
-                  <CardTitle>Summary</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <div className="text-sm text-gray-600">Comparisons</div>
-                      <div className="text-2xl font-bold">{politics.summary.total_comparisons}</div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-600">Arbitrage</div>
-                      <div className="text-2xl font-bold text-yellow-600">{politics.summary.arbitrage_opportunities}</div>
-                    </div>
                   </div>
-                </CardContent>
-              </Card>
+                )}
+              </>
+            )}
+          </TabsContent>
 
-              {/* Comparisons */}
-              {politics.comparisons.length > 0 ? (
-                <div className="space-y-6">
-                  {politics.comparisons.map((comp, idx) => (
-                    <ComparisonGroup key={idx} comparison={comp} />
-                  ))}
-                </div>
-              ) : (
-                <Card>
-                  <CardContent className="py-8 text-center text-gray-500">
+          {/* Politics Tab */}
+          <TabsContent value="politics" className="space-y-4">
+            {politics && (
+              <>
+                {/* Comparisons */}
+                {politics.comparisons.length > 0 ? (
+                  <div className="space-y-4">
+                    {politics.comparisons.map((comp, idx) => (
+                      <ComparisonGroup key={idx} comparison={comp} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-500 py-8">
                     No politics comparisons available at the moment
-                  </CardContent>
-                </Card>
-              )}
-            </>
-          )}
-        </TabsContent>
-
-        {/* Others Tab */}
-        <TabsContent value="others" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Other Markets</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">
-                Additional market categories will be available here soon.
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Crypto Tab */}
-        <TabsContent value="crypto" className="space-y-4">
-          {crypto && (
-            <>
-              {/* Summary */}
-              <Card className="mb-4">
-                <CardHeader>
-                  <CardTitle>Summary</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <div className="text-sm text-gray-600">Comparisons</div>
-                      <div className="text-2xl font-bold">{crypto.summary.total_comparisons}</div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-600">Arbitrage</div>
-                      <div className="text-2xl font-bold text-yellow-600">{crypto.summary.arbitrage_opportunities}</div>
-                    </div>
                   </div>
-                </CardContent>
-              </Card>
+                )}
+              </>
+            )}
+          </TabsContent>
 
-              {/* Comparisons */}
-              {crypto.comparisons.length > 0 ? (
-                <div className="space-y-6">
-                  {crypto.comparisons.map((comp, idx) => (
-                    <CryptoComparisonGroup key={idx} comparison={comp} />
-                  ))}
-                </div>
-              ) : (
-                <Card>
-                  <CardContent className="py-8 text-center text-gray-500">
+          {/* Others Tab */}
+          <TabsContent value="others" className="space-y-4">
+            <div className="text-center text-gray-500 py-8">
+              Additional market categories will be available here soon.
+            </div>
+          </TabsContent>
+
+          {/* Crypto Tab */}
+          <TabsContent value="crypto" className="space-y-4">
+            {crypto && (
+              <>
+                {/* Comparisons */}
+                {crypto.comparisons.length > 0 ? (
+                  <div className="space-y-4">
+                    {crypto.comparisons.map((comp, idx) => (
+                      <CryptoComparisonGroup key={idx} comparison={comp} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-500 py-8">
                     No crypto comparisons available at the moment
-                  </CardContent>
-                </Card>
-              )}
-            </>
-          )}
-        </TabsContent>
+                  </div>
+                )}
+              </>
+            )}
+          </TabsContent>
 
-        {/* Rundown Tab */}
-        <TabsContent value="rundown" className="space-y-4">
-          {/* Date Picker */}
-          <Card className="mb-4">
-            <CardHeader>
-              <CardTitle>Select Date for Sports Odds</CardTitle>
-            </CardHeader>
-            <CardContent>
+          {/* Rundown Tab */}
+          <TabsContent value="rundown" className="space-y-4">
+            {/* Date Picker */}
+            <div className="bg-[#1a1a1a] rounded-lg p-6 border border-gray-800">
+              <h3 className="text-xl font-semibold text-white mb-4">Select Date for Sports Odds</h3>
               <form onSubmit={handleRundownSubmit}>
                 <div className="flex items-center gap-4">
-                  <label htmlFor="rundown-date" className="text-sm font-medium text-gray-700">
+                  <label htmlFor="rundown-date" className="text-sm font-medium text-gray-300">
                     Game Date:
                   </label>
                   <input
@@ -650,51 +570,28 @@ export default function MarketAggregatorDashboard() {
                     id="rundown-date"
                     value={rundownDate}
                     onChange={(e) => setRundownDate(e.target.value)}
-                    className="p-2 border border-gray-300 rounded-md"
+                    className="p-2 bg-[#0a0a0a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-gray-600"
                     required
                   />
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                    className="px-6 py-2 bg-white text-black rounded-lg font-medium hover:bg-gray-100 transition-colors"
                   >
                     Search
                   </button>
                 </div>
               </form>
-            </CardContent>
-          </Card>
+            </div>
 
-          {rundown && (
-            <>
-              {/* Summary */}
-              <Card className="mb-4">
-                <CardHeader>
-                  <CardTitle>Summary</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <div className="text-sm text-gray-600">Total Events</div>
-                      <div className="text-2xl font-bold">{rundown.summary?.total_events || 0}</div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-600">Bookmakers</div>
-                      <div className="text-2xl font-bold">{rundown.summary?.total_bookmakers || 0}</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Events */}
-              {rundown.events && rundown.events.length > 0 ? (
-                <div className="space-y-6">
-                  {rundown.events.map((event) => (
-                    <Card key={event.event_id}>
-                      <CardHeader>
-                        <CardTitle>{event.away_team} @ {event.home_team}</CardTitle>
-                        <div className="text-sm text-gray-500">{new Date(event.event_date).toLocaleString()}</div>
-                      </CardHeader>
-                      <CardContent>
+            {rundown && (
+              <>
+                {/* Events */}
+                {rundown.events && rundown.events.length > 0 ? (
+                  <div className="space-y-4">
+                    {rundown.events.map((event) => (
+                      <div key={event.event_id} className="bg-[#1a1a1a] rounded-lg p-6 border border-gray-800">
+                        <h3 className="text-lg font-semibold mb-2">{event.away_team} @ {event.home_team}</h3>
+                        <div className="text-sm text-gray-400 mb-4">{new Date(event.event_date).toLocaleString()}</div>
                         <div className="space-y-2">
                           <div className="grid grid-cols-3 font-bold text-sm">
                             <span>Bookmaker</span>
@@ -702,28 +599,45 @@ export default function MarketAggregatorDashboard() {
                             <span className="text-right">{event.home_team}</span>
                           </div>
                           {event.lines.map((line) => (
-                            <div key={line.affiliate_name} className="grid grid-cols-3 text-sm border-t pt-2">
+                            <div key={line.affiliate_name} className="grid grid-cols-3 text-sm border-t border-gray-800 pt-2">
                               <span>{line.affiliate_name}</span>
                               <span className="text-right">{line.moneyline_away > 0 ? `+${line.moneyline_away}` : line.moneyline_away}</span>
                               <span className="text-right">{line.moneyline_home > 0 ? `+${line.moneyline_home}` : line.moneyline_home}</span>
                             </div>
                           ))}
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <Card>
-                  <CardContent className="py-8 text-center text-gray-500">
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-500 py-8">
                     No rundown data available at the moment. Please ensure your RAPIDAPI_KEY is set correctly.
-                  </CardContent>
-                </Card>
-              )}
-            </>
-          )}
-        </TabsContent>
-      </Tabs>
+                  </div>
+                )}
+              </>
+            )}
+          </TabsContent>
+        </Tabs>
+
+        {/* Footer */}
+        <div className="mt-8 pt-6 border-t border-gray-800 flex items-center justify-between text-xs text-gray-400">
+          <div className="flex items-center gap-6">
+            <span>Live</span>
+            <span>Privacy Policy</span>
+            <span className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+              Aggregating
+            </span>
+            <span>Terms of Service</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <span>$45.34</span>
+            <span>0.004 POL</span>
+            <span>USD</span>
+            <span className="px-2 py-1 bg-gray-800 rounded">POL</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

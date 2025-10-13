@@ -1,7 +1,6 @@
 "use client";
 
 import { Comparison } from "@/lib/market-types";
-import MarketCard from "./MarketCard";
 import { AlertCircle } from "lucide-react";
 
 interface ComparisonGroupProps {
@@ -9,91 +8,130 @@ interface ComparisonGroupProps {
 }
 
 export default function ComparisonGroup({ comparison }: ComparisonGroupProps) {
+  // Determine category based on title or other context
+  const getCategory = () => {
+    if (comparison.title.toLowerCase().includes('nfl') || 
+        comparison.title.toLowerCase().includes('vikings') ||
+        comparison.title.toLowerCase().includes('chiefs') ||
+        comparison.title.toLowerCase().includes('eagles')) {
+      return 'NFL';
+    }
+    if (comparison.title.toLowerCase().includes('trump') || 
+        comparison.title.toLowerCase().includes('harris') ||
+        comparison.title.toLowerCase().includes('election') ||
+        comparison.title.toLowerCase().includes('lord miles')) {
+      return 'Politics';
+    }
+    return null;
+  };
+
+  const category = getCategory();
+
+  const formatVolume = (volume: number | string) => {
+    const numVolume = typeof volume === 'string' ? parseFloat(volume) : volume;
+    if (numVolume >= 1000) {
+      return `$${Math.floor(numVolume / 1000)}K`;
+    }
+    return `$${numVolume}`;
+  };
+
+  const formatLiquidity = (liquidity: number) => {
+    if (liquidity >= 1000000) {
+      return `$${(liquidity / 1000000).toFixed(1)}M`;
+    }
+    if (liquidity >= 1000) {
+      return `$${(liquidity / 1000).toFixed(1)}K`;
+    }
+    return `$${liquidity}`;
+  };
+
   return (
-    <div className="mb-6">
-      {/* Title */}
-      <div className="mb-3 flex items-start justify-between">
-        <h3 className="text-xl font-bold text-gray-800">{comparison.title}</h3>
-        {comparison.arbitrage_opportunity && (
-          <span className="flex items-center gap-1 bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-semibold">
-            <AlertCircle className="w-3 h-3" />
-            Arbitrage Opportunity
-          </span>
-        )}
-      </div>
-
-      {/* Spread Info */}
-      <div className="mb-3 text-sm text-gray-600">
-        Price Spread: <span className="font-bold text-lg text-blue-600">{comparison.price_spread.toFixed(2)}%</span>
-      </div>
-
-      {/* Market Cards: Polymarket + Kalshi */}
-      <div className={`grid gap-4 ${comparison.kalshi_by_team ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1 md:grid-cols-2'}`}>
-        {comparison.polymarket && (
-          <MarketCard
-            platform="polymarket"
-            data={comparison.polymarket}
-            isBest={comparison.best_platform === "polymarket"}
-            perTeamBest={comparison.per_team_best}
-          />
-        )}
-        {/* New NFL layout: two Kalshi team cards if available */}
-        {comparison.kalshi_by_team?.map((kt, idx) => (
-          <MarketCard
-            key={kt.market_id}
-            platform="kalshi"
-            data={{
-              market_id: kt.market_id,
-              outcomes: [
-                kt.yes ? kt.yes : { name: "Yes", price: 0, american_odds: "" },
-                kt.no ? kt.no : { name: "No", price: 0, american_odds: "" }
-              ],
-              volume: kt.volume,
-              liquidity: kt.liquidity,
-              start_time: kt.start_time,
-            }}
-            isBest={comparison.best_platform === "kalshi"}
-            teamNormalized={kt.team_normalized}
-            teamDisplay={kt.team_display}
-            perTeamBest={comparison.per_team_best}
-          />
-        ))}
-        {/* Legacy politics layout: single Kalshi card */}
-        {!comparison.kalshi_by_team && comparison.kalshi && (
-          <MarketCard
-            platform="kalshi"
-            data={comparison.kalshi}
-            isBest={comparison.best_platform === "kalshi"}
-          />
-        )}
-      </div>
-
-      {/* Best Odds Summary per Team */}
-      {comparison.per_team_best && comparison.per_team_best.length > 0 && (
-        <div className="mt-4 p-4 rounded border bg-white">
-          <div className="text-center text-sm font-semibold text-gray-700 mb-3">Best Odds (per team)</div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {comparison.per_team_best.map((b) => {
-              const platformStyles = b.best_platform === 'polymarket'
-                ? 'bg-purple-100 text-purple-700'
-                : 'bg-blue-100 text-blue-700';
-              const platformLabel = b.best_platform.toUpperCase();
-              const sourceLabel = b.best_source === 'polymarket_team' ? 'Team' : (b.best_source === 'kalshi_yes' ? 'YES' : 'Opp NO');
-              return (
-                <div key={b.team_normalized} className="p-3 rounded bg-gray-50 text-center">
-                  <div className="text-base font-bold text-gray-900 mb-1">{b.team_display || b.team_normalized}</div>
-                  <div className="inline-flex items-center gap-2">
-                    <span className={`px-2 py-1 rounded text-xs font-semibold ${platformStyles}`}>{platformLabel}</span>
-                    <span className="text-sm font-semibold text-gray-900">{(b.best_price * 100).toFixed(1)}%</span>
-                    <span className="text-xs text-gray-500">({b.best_american_odds})</span>
-                    <span className="text-xs text-gray-400">{sourceLabel}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+    <div className="bg-[#1a1a1a] rounded-lg p-6 border border-gray-800">
+      {/* Question with icon and category */}
+      <div className="mb-6 flex items-start gap-3">
+        <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center flex-shrink-0">
+          <span className="text-white text-sm">👤</span>
         </div>
-      )}
+        <div className="flex-1">
+          <h3 className="text-white font-medium mb-1">{comparison.title}</h3>
+          {category && (
+            <span className="text-xs text-gray-400">{category}</span>
+          )}
+        </div>
+      </div>
+
+      {/* Platforms Side by Side */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Polymarket */}
+        {comparison.polymarket && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-white font-semibold">Polymarket</h4>
+              <span className="text-xs text-green-400 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
+                Active
+              </span>
+            </div>
+            <div className="mb-4">
+              <div className="text-xs text-gray-400 mb-1">Liquidity</div>
+              <div className="text-white font-semibold">{formatLiquidity(comparison.polymarket.liquidity)}</div>
+            </div>
+            <div className="mb-4">
+              <div className="text-xs text-gray-400 mb-1">Volume</div>
+              <div className="text-white font-semibold">{formatVolume(comparison.polymarket.volume)}</div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {comparison.polymarket.outcomes.map((outcome, idx) => (
+                <button
+                  key={idx}
+                  className={`py-3 px-4 rounded-lg font-semibold text-sm ${
+                    outcome.name.toLowerCase().includes('yes')
+                      ? 'bg-green-600 hover:bg-green-700'
+                      : 'bg-red-600 hover:bg-red-700'
+                  } text-white transition-colors`}
+                >
+                  {outcome.name} ({(outcome.price * 100).toFixed(0)}%)
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Kalshi */}
+        {comparison.kalshi && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-white font-semibold">Kalshi</h4>
+              <span className="text-xs text-green-400 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
+                Active
+              </span>
+            </div>
+            <div className="mb-4">
+              <div className="text-xs text-gray-400 mb-1">Liquidity</div>
+              <div className="text-white font-semibold">{formatLiquidity(comparison.kalshi.liquidity)}</div>
+            </div>
+            <div className="mb-4">
+              <div className="text-xs text-gray-400 mb-1">Volume</div>
+              <div className="text-white font-semibold">{formatVolume(comparison.kalshi.volume)}</div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {comparison.kalshi.outcomes.map((outcome, idx) => (
+                <button
+                  key={idx}
+                  className={`py-3 px-4 rounded-lg font-semibold text-sm ${
+                    outcome.name.toLowerCase().includes('yes')
+                      ? 'bg-green-600 hover:bg-green-700'
+                      : 'bg-red-600 hover:bg-red-700'
+                  } text-white transition-colors`}
+                >
+                  {outcome.name} ({(outcome.price * 100).toFixed(0)}%)
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
