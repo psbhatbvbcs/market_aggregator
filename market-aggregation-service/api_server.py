@@ -809,13 +809,19 @@ async def ws_crypto(websocket: WebSocket):
 
 
 @app.get("/rundown")
-async def get_rundown_markets():
+async def get_rundown_markets(date_str: Optional[str] = None):
     """
     Get rundown market data from The Rundown API
     """
     try:
-        # Using a hardcoded date from the example for demonstration
-        event_date = date(2025, 10, 12)
+        # Use provided date or default to today
+        if date_str:
+            try:
+                event_date = date.fromisoformat(date_str)
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+        else:
+            event_date = date.today()
         # Using sport_id=2 (NFL) from the example
         rundown_data = rundown_client.get_events_by_date(sport_id=2, event_date=event_date)
         
@@ -872,13 +878,6 @@ async def get_rundown_markets():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.websocket("/ws/rundown")
-async def ws_rundown(websocket: WebSocket):
-    async def fetch():
-        return await get_rundown_markets()
-    await push_periodic(websocket, fetch)
 
 
 if __name__ == "__main__":

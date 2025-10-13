@@ -21,7 +21,7 @@ class RundownClient:
     def get_events_by_date(self, sport_id: int, event_date: date) -> Dict[str, Any]:
         """Fetch events for a given sport and date."""
         if not self.api_key:
-            print("Warning: RAPIDAPI_KEY environment variable not set. RundownClient will not work.")
+            print("Warning: No API key provided to RundownClient. The client will not work.")
             return {"events": []}
             
         date_str = event_date.strftime("%Y-%m-%d")
@@ -35,4 +35,4 @@ class RundownClient:
             return response.json()
         except requests.exceptions.RequestException as e:
             print(f"Error fetching The Rundown events: {e}")
-            return {"events": []}
+            return None

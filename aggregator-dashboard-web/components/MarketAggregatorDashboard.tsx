@@ -32,6 +32,7 @@ export default function MarketAggregatorDashboard() {
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [activeTab, setActiveTab] = useState("dome");
   const [nflSubTab, setNflSubTab] = useState<"crypto" | "traditional">("crypto");
+  const [rundownDate, setRundownDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
   const [domeSearch, setDomeSearch] = useState({
     sport: "nfl",
@@ -94,15 +95,19 @@ export default function MarketAggregatorDashboard() {
   };
 
   // Fetch Rundown Markets
-  const fetchRundown = async () => {
+  const fetchRundown = async (date?: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/rundown`);
-      if (!response.ok) throw new Error("Failed to fetch rundown markets");
+      const dateParam = date || rundownDate;
+      const response = await fetch(`${API_BASE_URL}/rundown?date_str=${dateParam}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Failed to fetch rundown markets");
+      }
       const data = await response.json();
       setRundown(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error fetching rundown markets:", err);
-      setError("Failed to fetch rundown markets");
+      setError(err.message || "Failed to fetch rundown markets");
     }
   };
 
@@ -161,8 +166,7 @@ export default function MarketAggregatorDashboard() {
       fetchNFLCrypto(),
       fetchNFLTraditional(),
       fetchPolitics(),
-      fetchCrypto(),
-      fetchRundown()
+      fetchCrypto()
     ]);
     
     setLastUpdate(new Date());
@@ -174,7 +178,7 @@ export default function MarketAggregatorDashboard() {
     let wsCrypto: WebSocket | null = null;
     let wsTraditional: WebSocket | null = null;
     let wsPolitics: WebSocket | null = null;
-    let wsRundown: WebSocket | null = null;
+    let wsRundown: WebSocket | null = null; 
     let backoffCrypto = 1000;
     let backoffTraditional = 1000;
     let backoffPolitics = 1000;
@@ -277,6 +281,13 @@ export default function MarketAggregatorDashboard() {
   const handleDomeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     fetchDome();
+  };
+
+  const handleRundownSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (rundownDate) {
+      fetchRundown(rundownDate);
+    }
   };
 
   return (
@@ -623,6 +634,36 @@ export default function MarketAggregatorDashboard() {
 
         {/* Rundown Tab */}
         <TabsContent value="rundown" className="space-y-4">
+          {/* Date Picker */}
+          <Card className="mb-4">
+            <CardHeader>
+              <CardTitle>Select Date for Sports Odds</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleRundownSubmit}>
+                <div className="flex items-center gap-4">
+                  <label htmlFor="rundown-date" className="text-sm font-medium text-gray-700">
+                    Game Date:
+                  </label>
+                  <input
+                    type="date"
+                    id="rundown-date"
+                    value={rundownDate}
+                    onChange={(e) => setRundownDate(e.target.value)}
+                    className="p-2 border border-gray-300 rounded-md"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    Search
+                  </button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+
           {rundown && (
             <>
               {/* Summary */}
