@@ -12,7 +12,10 @@ import {
   PoliticsResponse,
   CryptoResponse,
   RundownResponse,
-  DomeResponse
+  DomeResponse,
+  OthersResponse,
+  OthersComparison,
+  CombinedNFLResponse
 } from "@/lib/market-types";
 import { RefreshCw, AlertCircle } from "lucide-react";
 
@@ -22,25 +25,25 @@ const REFRESH_INTERVAL = 5000; // 5 seconds (used as fallback)
 export default function MarketAggregatorDashboard() {
   const [nflCrypto, setNflCrypto] = useState<CryptoMarketsResponse | null>(null);
   const [nflTraditional, setNflTraditional] = useState<TraditionalOddsResponse | null>(null);
+  const [nflCombined, setNflCombined] = useState<CombinedNFLResponse | null>(null);
   const [politics, setPolitics] = useState<PoliticsResponse | null>(null);
   const [crypto, setCrypto] = useState<CryptoResponse | null>(null);
+  const [others, setOthers] = useState<OthersResponse | null>(null);
   const [rundown, setRundown] = useState<RundownResponse | null>(null);
   const [dome, setDome] = useState<DomeResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [domeLoading, setDomeLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  const [activeTab, setActiveTab] = useState("dome");
-  const [nflSubTab, setNflSubTab] = useState<"crypto" | "traditional">("crypto");
+  const [activeTab, setActiveTab] = useState("nfl");
+  const [nflSubTab, setNflSubTab] = useState<"crypto" | "traditional" | "combined">("combined");
+  const [othersOffset, setOthersOffset] = useState(0);
+  const OTHERS_LIMIT = 10;
   const [rundownDate, setRundownDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [nflCombinedDate, setNflCombinedDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
-  const [domeSearch, setDomeSearch] = useState({
-    sport: "nfl",
-    date: "",
-    polymarket_market_slug: "",
-    kalshi_event_ticker: "",
-    searchType: "sport_date",
-  });
+  const [domeSport, setDomeSport] = useState("nfl");
+  const [domeDate, setDomeDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
   // Fetch NFL Crypto Markets
   const fetchNFLCrypto = async () => {
@@ -65,6 +68,19 @@ export default function MarketAggregatorDashboard() {
     } catch (err) {
       console.error("Error fetching NFL traditional odds:", err);
       setError("Failed to fetch NFL traditional odds");
+    }
+  };
+
+  // Fetch NFL Combined (Dome + Rundown)
+  const fetchNFLCombined = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/nfl/combined?date=${nflCombinedDate}`);
+      if (!response.ok) throw new Error("Failed to fetch NFL combined markets");
+      const data = await response.json();
+      setNflCombined(data);
+    } catch (err) {
+      console.error("Error fetching NFL combined markets:", err);
+      setError("Failed to fetch NFL combined markets");
     }
   };
 
@@ -94,6 +110,24 @@ export default function MarketAggregatorDashboard() {
     }
   };
 
+  // Fetch Others Markets
+  const fetchOthers = async () => {
+    try {
+      const params = new URLSearchParams({ limit: String(OTHERS_LIMIT), offset: String(othersOffset) });
+      const response = await fetch(`${API_BASE_URL}/others?${params.toString()}`);
+      if (!response.ok) throw new Error("Failed to fetch others markets");
+      const data: any = await response.json();
+      if (data && data.error) {
+        setError(String(data.error));
+        return;
+      }
+      setOthers(data as OthersResponse);
+    } catch (err) {
+      console.error("Error fetching others markets:", err);
+      setError("Failed to fetch others markets");
+    }
+  };
+
   // Fetch Rundown Markets
   const fetchRundown = async (date?: string) => {
     try {
@@ -118,33 +152,14 @@ export default function MarketAggregatorDashboard() {
     setError(null);
     setDome(null);
 
-    let queryString = "";
-    if (domeSearch.searchType === "sport_date") {
-      if (domeSearch.sport && domeSearch.date) {
-        queryString = `sport=${domeSearch.sport}&date=${domeSearch.date}`;
-      } else {
-        setError("Sport and date are required for this search type.");
-        setDomeLoading(false);
-        return;
-      }
-    } else {
-      const slugs = domeSearch.polymarket_market_slug.trim();
-      const tickers = domeSearch.kalshi_event_ticker.trim();
-      if (slugs) {
-        queryString += `polymarket_market_slug=${encodeURIComponent(slugs)}`;
-      }
-      if (tickers) {
-        if (queryString) queryString += "&";
-        queryString += `kalshi_event_ticker=${encodeURIComponent(tickers)}`;
-      }
-      if (!queryString) {
-        setError("At least one slug or ticker is required.");
-        setDomeLoading(false);
-        return;
-      }
+    if (!domeSport || !domeDate) {
+      setError("Sport and date are required.");
+      setDomeLoading(false);
+      return;
     }
 
     try {
+      const queryString = `sport=${domeSport}&date=${domeDate}`;
       const response = await fetch(`${API_BASE_URL}/dome?${queryString}`);
       if (!response.ok) throw new Error("Failed to fetch dome markets");
       const data = await response.json();
@@ -157,126 +172,59 @@ export default function MarketAggregatorDashboard() {
     }
   };
 
-  // Fetch all data
-  const fetchAllData = async () => {
+  // Fetch data based on active tab
+  const fetchCurrentTabData = async () => {
     setLoading(true);
     setError(null);
-    
-    await Promise.all([
-      fetchNFLCrypto(),
-      fetchNFLTraditional(),
-      fetchPolitics(),
-      fetchCrypto()
-    ]);
-    
+
+    try {
+      if (activeTab === "nfl") {
+        if (nflSubTab === "crypto") {
+          await fetchNFLCrypto();
+        } else if (nflSubTab === "traditional") {
+          await fetchNFLTraditional();
+        } else if (nflSubTab === "combined") {
+          await fetchNFLCombined();
+        }
+      } else if (activeTab === "politics") {
+        await fetchPolitics();
+      } else if (activeTab === "crypto") {
+        await fetchCrypto();
+      } else if (activeTab === "others") {
+        await fetchOthers();
+      } else if (activeTab === "dome") {
+        // Dome is fetched on-demand via form submission
+      } else if (activeTab === "rundown") {
+        // Rundown is fetched on-demand via form submission
+      }
+    } catch (err) {
+      console.error("Error fetching tab data:", err);
+    }
+
     setLastUpdate(new Date());
     setLoading(false);
   };
 
-  // WebSocket helpers with backoff
+  // Initial data fetch when tab changes
   useEffect(() => {
-    let wsCrypto: WebSocket | null = null;
-    let wsTraditional: WebSocket | null = null;
-    let wsPolitics: WebSocket | null = null;
-    let wsRundown: WebSocket | null = null; 
-    let backoffCrypto = 1000;
-    let backoffTraditional = 1000;
-    let backoffPolitics = 1000;
-    let backoffRundown = 1000;
-    const maxBackoff = 15000;
-    let isUnmounting = false;
+    fetchCurrentTabData();
+  }, [activeTab, nflSubTab, nflCombinedDate]);
 
-    const connect = (
-      path: string,
-      onMessage: (data: any) => void,
-      onAssign: (ws: WebSocket) => void,
-      onBackoffUpdate: (ms: number) => void,
-      initialBackoff: number
-    ) => {
-      const ws = new WebSocket(path);
-      onAssign(ws);
-      ws.onopen = () => {
-        onBackoffUpdate(1000);
-      };
-      ws.onmessage = (evt) => {
-        try {
-          const data = JSON.parse(evt.data);
-          onMessage(data);
-          setLastUpdate(new Date());
-          setLoading(false);
-        } catch (e) {
-          // ignore parsing errors
-        }
-      };
-      ws.onclose = () => {
-        if (isUnmounting) return; // don't reconnect during unmount (React StrictMode double-invoke)
-        const next = Math.min(initialBackoff * 2, maxBackoff);
-        onBackoffUpdate(next);
-        setTimeout(() => connect(path, onMessage, onAssign, onBackoffUpdate, next), next);
-      };
-      ws.onerror = () => {
-        ws.close();
-      };
-    };
+  // Poll for current tab data every 10 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchCurrentTabData();
+    }, 10000); // 10 seconds
 
-    // Connect sockets
-    const wsHost = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-    connect(
-      `ws://${wsHost}:8000/ws/nfl/crypto`,
-      (data) => setNflCrypto(data),
-      (ws) => { wsCrypto = ws; },
-      (ms) => { backoffCrypto = ms; },
-      backoffCrypto
-    );
-    connect(
-      `ws://${wsHost}:8000/ws/nfl/traditional`,
-      (data) => setNflTraditional(data),
-      (ws) => { wsTraditional = ws; },
-      (ms) => { backoffTraditional = ms; },
-      backoffTraditional
-    );
-    connect(
-      `ws://${wsHost}:8000/ws/politics`,
-      (data) => setPolitics(data),
-      (ws) => { wsPolitics = ws; },
-      (ms) => { backoffPolitics = ms; },
-      backoffPolitics
-    );
-    connect(
-      `ws://${wsHost}:8000/ws/crypto`,
-      (data) => setCrypto(data),
-      (ws) => { wsCrypto = ws; },
-      (ms) => { backoffCrypto = ms; },
-      backoffCrypto
-    );
-    connect(
-      `ws://${wsHost}:8000/ws/rundown`,
-      (data) => setRundown(data),
-      (ws) => { wsRundown = ws; },
-      (ms) => { backoffRundown = ms; },
-      backoffRundown
-    );
+    return () => clearInterval(interval);
+  }, [activeTab, nflSubTab, nflCombinedDate]);
 
-    // Fallback: initial fetch if sockets delayed
-    fetchAllData();
-
-    return () => {
-      isUnmounting = true;
-      if (wsCrypto && wsCrypto.readyState === WebSocket.OPEN) wsCrypto.close(1000);
-      if (wsTraditional && wsTraditional.readyState === WebSocket.OPEN) wsTraditional.close(1000);
-      if (wsPolitics && wsPolitics.readyState === WebSocket.OPEN) wsPolitics.close(1000);
-      if (wsRundown && wsRundown.readyState === WebSocket.OPEN) wsRundown.close(1000);
-    };
-  }, []);
-
-  const handleDomeSearchChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setDomeSearch(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleDomeSearchTypeChange = (value: string) => {
-    setDomeSearch(prev => ({ ...prev, searchType: value }));
-  };
+  // Fetch Others data when offset changes
+  useEffect(() => {
+    if (activeTab === "others") {
+      fetchOthers();
+    }
+  }, [othersOffset]);
 
   const handleDomeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -395,10 +343,137 @@ export default function MarketAggregatorDashboard() {
 
           {/* NFL Tab */}
           <TabsContent value="nfl" className="space-y-4">
-            {/* NFL Crypto Markets */}
-            {nflCrypto && (
+            {/* NFL Sub-tabs */}
+            <div className="flex gap-2 mb-4">
+              <button
+                onClick={() => setNflSubTab("combined")}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  nflSubTab === "combined" ? "bg-white text-black" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                }`}
+              >
+                All Providers
+              </button>
+              <button
+                onClick={() => setNflSubTab("crypto")}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  nflSubTab === "crypto" ? "bg-white text-black" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                }`}
+              >
+                Crypto Only
+              </button>
+              <button
+                onClick={() => setNflSubTab("traditional")}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  nflSubTab === "traditional" ? "bg-white text-black" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                }`}
+              >
+                Traditional Only
+              </button>
+            </div>
+
+            {/* Combined View */}
+            {nflSubTab === "combined" && (
               <>
-                {/* Comparisons */}
+                <div className="bg-[#1a1a1a] rounded-lg p-4 border border-gray-800 mb-4">
+                  <div className="flex items-center gap-4">
+                    <label htmlFor="nfl-combined-date" className="text-sm font-medium text-gray-300">
+                      Game Date:
+                    </label>
+                    <input
+                      type="date"
+                      id="nfl-combined-date"
+                      value={nflCombinedDate}
+                      onChange={(e) => setNflCombinedDate(e.target.value)}
+                      className="p-2 bg-[#0a0a0a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-gray-600"
+                    />
+                  </div>
+                </div>
+                
+                {nflCombined && nflCombined.games.length > 0 ? (
+                  <div className="space-y-4">
+                    {nflCombined.games.map((game, idx) => (
+                      <div key={idx} className="bg-[#1a1a1a] rounded-lg p-6 border border-gray-800">
+                        <h3 className="text-xl font-semibold mb-4">
+                          {game.teams.team1.toUpperCase()} vs {game.teams.team2.toUpperCase()}
+                        </h3>
+                        
+                        <div className="grid grid-cols-1 gap-4">
+                          {/* Polymarket */}
+                          {game.polymarket && (
+                            <div className="border-l-4 border-blue-500 pl-4">
+                              <div className="font-semibold text-blue-400 mb-2">Polymarket</div>
+                              <div className="flex gap-4">
+                                {game.polymarket.outcomes.map((outcome, i) => (
+                                  <div key={i} className="flex-1">
+                                    <div className="text-sm text-gray-400">{outcome.name}</div>
+                                    <div className="text-lg font-bold">{(outcome.price * 100).toFixed(1)}%</div>
+                                    <div className="text-sm text-gray-500">{outcome.american_odds}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Kalshi */}
+                          {game.kalshi && (
+                            <div className="border-l-4 border-green-500 pl-4">
+                              <div className="font-semibold text-green-400 mb-2">Kalshi</div>
+                              <div className="flex gap-4">
+                                {game.kalshi.outcomes.map((outcome, i) => (
+                                  <div key={i} className="flex-1">
+                                    <div className="text-sm text-gray-400">{outcome.name}</div>
+                                    <div className="text-lg font-bold">{(outcome.price * 100).toFixed(1)}%</div>
+                                    <div className="text-sm text-gray-500">{outcome.american_odds}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Traditional Sportsbooks */}
+                          {game.traditional_odds && game.traditional_odds.length > 0 && (
+                            <div className="border-l-4 border-yellow-500 pl-4">
+                              <div className="font-semibold text-yellow-400 mb-2">Traditional Sportsbooks</div>
+                              <div className="space-y-2">
+                                {game.traditional_odds.map((line, i) => (
+                                  <div key={i} className="flex justify-between items-center">
+                                    <div className="text-sm font-medium">{line.affiliate_name}</div>
+                                    <div className="flex gap-4">
+                                      <div className="text-sm">
+                                        <span className="text-gray-400">Away: </span>
+                                        <span className="font-bold">{line.moneyline_away > 0 ? `+${line.moneyline_away}` : line.moneyline_away}</span>
+                                      </div>
+                                      <div className="text-sm">
+                                        <span className="text-gray-400">Home: </span>
+                                        <span className="font-bold">{line.moneyline_home > 0 ? `+${line.moneyline_home}` : line.moneyline_home}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {game.arbitrage_opportunity && (
+                          <div className="mt-4 text-sm text-yellow-400 font-semibold">
+                            ⚡ Arbitrage Opportunity (Spread: {game.price_spread.toFixed(2)}%)
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-500 py-8">
+                    No combined NFL markets available for this date
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Crypto Only View */}
+            {nflSubTab === "crypto" && nflCrypto && (
+              <>
                 {nflCrypto.comparisons.length > 0 ? (
                   <div className="space-y-4">
                     {nflCrypto.comparisons.map((comp, idx) => (
@@ -407,7 +482,24 @@ export default function MarketAggregatorDashboard() {
                   </div>
                 ) : (
                   <div className="text-center text-gray-500 py-8">
-                    No comparisons available at the moment
+                    No crypto comparisons available at the moment
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Traditional Only View */}
+            {nflSubTab === "traditional" && nflTraditional && (
+              <>
+                {nflTraditional.games.length > 0 ? (
+                  <div className="space-y-4">
+                    {nflTraditional.games.map((game, idx) => (
+                      <TraditionalOddsCard key={idx} game={game} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-500 py-8">
+                    No traditional odds available at the moment
                   </div>
                 )}
               </>
@@ -417,72 +509,36 @@ export default function MarketAggregatorDashboard() {
           {/* Dome Tab */}
           <TabsContent value="dome" className="space-y-4">
             <div className="bg-[#1a1a1a] rounded-lg p-6 border border-gray-800">
-              <h3 className="text-xl font-semibold text-white mb-4">Dome Market Search</h3>
+              <h3 className="text-xl font-semibold text-white mb-4">Select Sport & Date for Dome Markets</h3>
               <form onSubmit={handleDomeSubmit}>
-                <Tabs value={domeSearch.searchType} onValueChange={handleDomeSearchTypeChange} className="mb-4">
-                  <TabsList className="bg-[#0a0a0a] border border-gray-700">
-                    <TabsTrigger value="sport_date" className="data-[state=active]:bg-[#1a1a1a] data-[state=active]:text-white">By Sport & Date</TabsTrigger>
-                    <TabsTrigger value="slug_ticker" className="data-[state=active]:bg-[#1a1a1a] data-[state=active]:text-white">By Slug/Ticker</TabsTrigger>
-                  </TabsList>
-                </Tabs>
-
-                {domeSearch.searchType === 'sport_date' ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="sport" className="block text-sm font-medium text-gray-300 mb-2">Sport</label>
-                      <select 
-                        id="sport" 
-                        name="sport" 
-                        value={domeSearch.sport} 
-                        onChange={handleDomeSearchChange} 
-                        className="w-full p-2 bg-[#0a0a0a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-gray-600"
-                      >
-                        <option value="nfl">NFL</option>
-                        <option value="mlb">MLB</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label htmlFor="date" className="block text-sm font-medium text-gray-300 mb-2">Date</label>
-                      <input 
-                        type="date" 
-                        id="date" 
-                        name="date" 
-                        value={domeSearch.date} 
-                        onChange={handleDomeSearchChange} 
-                        className="w-full p-2 bg-[#0a0a0a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-gray-600" 
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div>
-                      <label htmlFor="polymarket_market_slug" className="block text-sm font-medium text-gray-300 mb-2">Polymarket Slugs (comma-separated)</label>
-                      <input 
-                        type="text" 
-                        id="polymarket_market_slug" 
-                        name="polymarket_market_slug" 
-                        value={domeSearch.polymarket_market_slug} 
-                        onChange={handleDomeSearchChange} 
-                        className="w-full p-2 bg-[#0a0a0a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-gray-600" 
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="kalshi_event_ticker" className="block text-sm font-medium text-gray-300 mb-2">Kalshi Tickers (comma-separated)</label>
-                      <input 
-                        type="text" 
-                        id="kalshi_event_ticker" 
-                        name="kalshi_event_ticker" 
-                        value={domeSearch.kalshi_event_ticker} 
-                        onChange={handleDomeSearchChange} 
-                        className="w-full p-2 bg-[#0a0a0a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-gray-600" 
-                      />
-                    </div>
-                  </div>
-                )}
-                <div className="mt-4">
-                  <button 
-                    type="submit" 
-                    disabled={domeLoading} 
+                <div className="flex items-center gap-4">
+                  <label htmlFor="dome-sport" className="text-sm font-medium text-gray-300">
+                    Sport:
+                  </label>
+                  <select
+                    id="dome-sport"
+                    value={domeSport}
+                    onChange={(e) => setDomeSport(e.target.value)}
+                    className="p-2 bg-[#0a0a0a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-gray-600"
+                    required
+                  >
+                    <option value="nfl">NFL</option>
+                    <option value="mlb">MLB</option>
+                  </select>
+                  <label htmlFor="dome-date" className="text-sm font-medium text-gray-300">
+                    Game Date:
+                  </label>
+                  <input
+                    type="date"
+                    id="dome-date"
+                    value={domeDate}
+                    onChange={(e) => setDomeDate(e.target.value)}
+                    className="p-2 bg-[#0a0a0a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-gray-600"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    disabled={domeLoading}
                     className="px-6 py-2 bg-white text-black rounded-lg font-medium hover:bg-gray-100 disabled:bg-gray-600 disabled:text-gray-400 transition-colors"
                   >
                     {domeLoading ? 'Searching...' : 'Search'}
@@ -530,9 +586,76 @@ export default function MarketAggregatorDashboard() {
 
           {/* Others Tab */}
           <TabsContent value="others" className="space-y-4">
-            <div className="text-center text-gray-500 py-8">
-              Additional market categories will be available here soon.
-            </div>
+            {others && others.summary && (
+              <>
+                {/* Summary */}
+                <Card className="mb-4">
+                  <CardHeader>
+                    <CardTitle>Summary</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div>
+                        <div className="text-sm text-gray-600">Comparisons</div>
+                        <div className="text-2xl font-bold">{others.summary?.total_comparisons ?? 0}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-600">Arbitrage</div>
+                        <div className="text-2xl font-bold text-yellow-600">{others.summary?.arbitrage_opportunities ?? 0}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-600">Limit</div>
+                        <div className="text-xl">{others.limit ?? OTHERS_LIMIT}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-600">Offset</div>
+                        <div className="text-xl">{others.offset ?? othersOffset}</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Comparisons */}
+                {others.comparisons && others.comparisons.length > 0 ? (
+                  <div className="space-y-6">
+                    {others.comparisons.map((comp, idx) => (
+                      <ComparisonGroup key={idx} comparison={comp as any} />
+                    ))}
+                  </div>
+                ) : (
+                  <Card>
+                    <CardContent className="py-8 text-center text-gray-500">
+                      No other comparisons available at the moment
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Pagination */}
+                <div className="flex items-center justify-between mt-4">
+                  <button
+                    onClick={() => {
+                      const next = Math.max(0, othersOffset - OTHERS_LIMIT)
+                      setOthersOffset(next);
+                      fetchOthers();
+                    }}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${othersOffset === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                    disabled={othersOffset === 0}
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => {
+                      const next = othersOffset + OTHERS_LIMIT
+                      setOthersOffset(next);
+                      fetchOthers();
+                    }}
+                    className="px-4 py-2 rounded-lg font-medium transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  >
+                    Next
+                  </button>
+                </div>
+              </>
+            )}
           </TabsContent>
 
           {/* Crypto Tab */}

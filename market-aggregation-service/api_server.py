@@ -7,8 +7,7 @@ Provides real-time market comparison data from multiple platforms:
 - Politics: Polymarket + Kalshi comparisons
 """
 
-from fastapi import FastAPI, HTTPException
-from fastapi import WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime, timedelta, timezone, date
 from typing import List, Dict, Any, Optional
@@ -16,6 +15,10 @@ import sys
 import os
 from dateutil import parser as date_parser
 import configparser
+import asyncio
+import time
+import requests
+import signal
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -52,6 +55,14 @@ rundown_client = RundownClient(api_key=config.get('API_KEYS', 'RUNDOWN_API_KEY',
 dome_client = DomeAPIClient(api_key=config.get('API_KEYS', 'DOME_API_KEY', fallback=None))
 odds_api_key = config.get('API_KEYS', 'ODDS_API_KEY', fallback=None)
 odds_client = OddsAPIClient(odds_api_key)
+
+# Simple in-memory cache for external "others" endpoint
+OTHERS_CACHE_TTL_SECONDS = 5
+_others_cache_payload: Optional[Dict[str, Any]] = None
+_others_cache_limit: Optional[int] = None
+_others_cache_offset: Optional[int] = None
+_others_cache_ts: float = 0.0
+_others_cache_lock = asyncio.Lock()
 
 
 def filter_future_markets(markets):
@@ -93,24 +104,6 @@ def filter_correct_markets(markets):
             continue
     
     return correct_markets
-async def push_periodic(websocket: WebSocket, fetch_func, interval_seconds: int = 5):
-    """Utility: periodically send JSON from fetch_func to a websocket."""
-    await websocket.accept()
-    try:
-        while True:
-            data = await fetch_func()
-            await websocket.send_json(data)
-            # simple sleep without blocking
-            import asyncio
-            await asyncio.sleep(interval_seconds)
-    except WebSocketDisconnect:
-        return
-    except Exception as e:
-        try:
-            await websocket.send_json({"error": str(e)})
-        except Exception:
-            pass
-        return
 
 
 
@@ -121,9 +114,12 @@ async def root():
         "message": "Market Aggregator API",
         "version": "1.0.0",
         "endpoints": {
+            "/nfl/combined": "Combined NFL markets: Dome (Polymarket + Kalshi) + Rundown (traditional sportsbooks)",
             "/nfl/crypto": "NFL markets from Polymarket + Kalshi",
             "/nfl/traditional": "NFL odds from traditional sportsbooks",
-            "/politics": "Politics markets from Polymarket + Kalshi"
+            "/politics": "Politics markets from Polymarket + Kalshi",
+            "/crypto": "Crypto markets across Polymarket/Kalshi/Limitless",
+            "/others": "Externally matched Polymarket + Kalshi markets"
         }
     }
 
@@ -369,16 +365,6 @@ async def get_nfl_crypto_markets():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ===================== WebSocket feeds =====================
-@app.websocket("/ws/nfl/crypto")
-async def ws_nfl_crypto(websocket: WebSocket):
-    async def fetch():
-        # Reuse the same logic as REST endpoint by calling it directly
-        # Wrap in coroutine as get_nfl_crypto_markets is async
-        return await get_nfl_crypto_markets()
-    await push_periodic(websocket, fetch)
-
-
 @app.get("/nfl/traditional")
 async def get_nfl_traditional_odds():
     """
@@ -422,13 +408,6 @@ async def get_nfl_traditional_odds():
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.websocket("/ws/nfl/traditional")
-async def ws_nfl_traditional(websocket: WebSocket):
-    async def fetch():
-        return await get_nfl_traditional_odds()
-    await push_periodic(websocket, fetch)
 
 
 @app.get("/politics")
@@ -534,13 +513,6 @@ async def get_politics_markets():
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.websocket("/ws/politics")
-async def ws_politics(websocket: WebSocket):
-    async def fetch():
-        return await get_politics_markets()
-    await push_periodic(websocket, fetch)
 
 
 @app.get("/dome")
@@ -801,13 +773,6 @@ async def get_crypto_markets():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.websocket("/ws/crypto")
-async def ws_crypto(websocket: WebSocket):
-    async def fetch():
-        return await get_crypto_markets()
-    await push_periodic(websocket, fetch)
-
-
 @app.get("/rundown")
 async def get_rundown_markets(date_str: Optional[str] = None):
     """
@@ -880,6 +845,244 @@ async def get_rundown_markets(date_str: Optional[str] = None):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ===================== Combined NFL Markets =====================
+@app.get("/nfl/combined")
+async def get_nfl_combined_markets(sport: str = "nfl", date: Optional[str] = None):
+    """
+    Get combined NFL markets from Dome (Polymarket + Kalshi) and Rundown (traditional sportsbooks)
+    """
+    try:
+        if not date:
+            date = datetime.now().strftime('%Y-%m-%d')
+        
+        # Fetch from Dome
+        dome_markets = await get_dome_markets(sport=sport, date=date)
+        
+        # Fetch from Rundown (handle failures gracefully)
+        rundown_data = {"events": []}
+        try:
+            rundown_result = await get_rundown_markets(date_str=date)
+            if rundown_result:
+                rundown_data = rundown_result
+        except Exception as rundown_error:
+            print(f"Rundown API unavailable: {rundown_error}")
+            # Continue without rundown data
+        
+        # Combine the data by matching team names
+        combined_games = []
+        
+        for dome_comp in dome_markets.get("comparisons", []):
+            title = dome_comp.get("title", "")
+            # Extract team names from title (format: nfl-pit-cin-2025-10-16)
+            parts = title.split("-")
+            if len(parts) >= 3:
+                team1 = parts[1].upper()
+                team2 = parts[2].upper()
+                
+                # Find matching rundown event
+                rundown_lines = []
+                for event in rundown_data.get("events", []):
+                    home = event.get("home_team", "").upper()
+                    away = event.get("away_team", "").upper()
+                    
+                    # Check if teams match
+                    if (team1 in home or team1 in away or team2 in home or team2 in away):
+                        rundown_lines = event.get("lines", [])
+                        break
+                
+                combined_games.append({
+                    "title": dome_comp.get("title"),
+                    "teams": {
+                        "team1": parts[1] if len(parts) > 1 else "",
+                        "team2": parts[2] if len(parts) > 2 else ""
+                    },
+                    "polymarket": dome_comp.get("polymarket"),
+                    "kalshi": dome_comp.get("kalshi"),
+                    "traditional_odds": rundown_lines,
+                    "price_spread": dome_comp.get("price_spread"),
+                    "arbitrage_opportunity": dome_comp.get("arbitrage_opportunity")
+                })
+        
+        return {
+            "games": combined_games,
+            "summary": {
+                "total_games": len(combined_games),
+                "dome_comparisons": len(dome_markets.get("comparisons", [])),
+                "rundown_events": len(rundown_data.get("events", []))
+            },
+            "timestamp": datetime.now().isoformat(),
+            "note": "Rundown data unavailable" if not rundown_data.get("events") else None
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ===================== Others (external matched markets) =====================
+@app.get("/others")
+async def get_others_matched_markets(limit: int = Query(10, ge=1, le=100), offset: int = Query(0, ge=0)):
+    """
+    Proxy external matched markets API (Polymarket + Kalshi) and normalize
+    to the same structure used by politics comparisons.
+    """
+    try:
+        global _others_cache_payload, _others_cache_limit, _others_cache_offset, _others_cache_ts
+        url = f"https://monitorthesituation.lol/api/bff/matches?top_k=1&limit={limit}&offset={offset}"
+        headers = {"accept": "*/*"}
+        # Serve from cache when fresh and matching params
+        now = time.time()
+        if (
+            _others_cache_payload is not None
+            and _others_cache_limit == limit
+            and _others_cache_offset == offset
+            and (now - _others_cache_ts) < OTHERS_CACHE_TTL_SECONDS
+        ):
+            return _others_cache_payload
+
+        # Lock and re-check inside to avoid stampede
+        async with _others_cache_lock:
+            now = time.time()
+            if (
+                _others_cache_payload is not None
+                and _others_cache_limit == limit
+                and _others_cache_offset == offset
+                and (now - _others_cache_ts) < OTHERS_CACHE_TTL_SECONDS
+            ):
+                return _others_cache_payload
+
+            # Run blocking HTTP in a thread to avoid blocking the event loop
+            resp = await asyncio.to_thread(requests.get, url, headers=headers, timeout=10)
+        if resp.status_code != 200:
+            raise HTTPException(status_code=502, detail="Upstream matches API error")
+        raw = resp.json() or {}
+
+        def to_fraction(val):
+            try:
+                if val is None:
+                    return None
+                n = float(val)
+                if n > 1:
+                    n = max(0.0, min(1.0, n / 100.0))
+                else:
+                    n = max(0.0, min(1.0, n))
+                return n
+            except Exception:
+                return None
+
+        comparisons = []
+        for item in (raw.get("data") or []):
+            best = (item.get("best") or {}).get("market") or {}
+            source = item.get("source") or {}
+
+            title = best.get("title") or source.get("title") or "Matched Market"
+
+            kalshi_yes = to_fraction(best.get("yes_ask", best.get("yes_bid", best.get("last_price"))))
+            poly_yes = to_fraction(source.get("yes_ask", source.get("yes_bid", source.get("last_price"))))
+
+            polymarket = None
+            if source:
+                polymarket = {
+                    "market_id": source.get("market_ref_id") or source.get("id") or "",
+                    "outcomes": [
+                        {"name": "Yes", "price": poly_yes or 0.0, "american_odds": ""},
+                        {"name": "No", "price": 1 - (poly_yes or 0.0), "american_odds": ""},
+                    ],
+                    "volume": source.get("volume") or 0,
+                    "liquidity": float(source.get("liquidity") or 0),
+                }
+
+            kalshi = None
+            if best:
+                kalshi = {
+                    "market_id": best.get("market_ref_id") or best.get("id") or "",
+                    "outcomes": [
+                        {"name": "Yes", "price": kalshi_yes or 0.0, "american_odds": ""},
+                        {"name": "No", "price": 1 - (kalshi_yes or 0.0), "american_odds": ""},
+                    ],
+                    "volume": best.get("volume") or 0,
+                    "liquidity": float(best.get("liquidity") or 0),
+                }
+
+            spread = 0.0
+            if poly_yes is not None and kalshi_yes is not None:
+                spread = abs(poly_yes - kalshi_yes) * 100.0
+            best_platform = (
+                "polymarket" if (poly_yes or 0) > (kalshi_yes or 0) else "kalshi"
+            )
+
+            comparisons.append({
+                "title": title,
+                "price_spread": spread,
+                "best_platform": best_platform,
+                "arbitrage_opportunity": spread > 5.0,
+                "polymarket": polymarket,
+                "kalshi": kalshi,
+            })
+
+        payload = {
+            "comparisons": comparisons,
+            "summary": {
+                "total_comparisons": len(comparisons),
+                "arbitrage_opportunities": sum(1 for c in comparisons if c.get("arbitrage_opportunity")),
+            },
+            "timestamp": datetime.now().isoformat(),
+            "limit": limit,
+            "offset": offset,
+        }
+
+        # Update cache
+        async with _others_cache_lock:
+            _others_cache_payload = payload
+            _others_cache_limit = limit
+            _others_cache_offset = offset
+            _others_cache_ts = time.time()
+
+        return payload
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    import threading
+    import time as time_module
+    
+    print("🚀 Starting server on http://0.0.0.0:8000")
+    print("   Press CTRL+C to stop immediately\n")
+    
+    # Track if we're shutting down
+    shutting_down = False
+    
+    def force_exit_handler(signum, frame):
+        """Immediately exit on CTRL+C"""
+        global shutting_down
+        if shutting_down:
+            return
+        shutting_down = True
+        print("\n\n🛑 Force stopping server...")
+        
+        # Give it 0.5 seconds then force kill
+        def delayed_kill():
+            time_module.sleep(0.5)
+            os._exit(0)
+        
+        killer = threading.Thread(target=delayed_kill, daemon=True)
+        killer.start()
+        
+        # Also try to exit normally
+        sys.exit(0)
+    
+    # Install signal handler BEFORE starting uvicorn
+    signal.signal(signal.SIGINT, force_exit_handler)
+    signal.signal(signal.SIGTERM, force_exit_handler)
+    
+    try:
+        uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
+    except (KeyboardInterrupt, SystemExit):
+        pass
+    finally:
+        if not shutting_down:
+            print("\n\n🛑 Server stopped")
+        os._exit(0)

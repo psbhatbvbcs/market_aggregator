@@ -169,3 +169,46 @@ export interface DomeResponse {
   timestamp: string;
 }
 
+export interface OthersComparison {
+  title: string;
+  price_spread: number;
+  best_platform: "polymarket" | "kalshi";
+  arbitrage_opportunity: boolean;
+  polymarket: MarketData | null;
+  kalshi: MarketData | null;
+}
+
+export interface OthersResponse {
+  comparisons: OthersComparison[];
+  summary: {
+    total_comparisons: number;
+    arbitrage_opportunities: number;
+  };
+  timestamp: string;
+  limit?: number;
+  offset?: number;
+}
+
+export interface CombinedNFLGame {
+  title: string;
+  teams: {
+    team1: string;
+    team2: string;
+  };
+  polymarket: MarketData | null;
+  kalshi: MarketData | null;
+  traditional_odds: RundownLine[];
+  price_spread: number;
+  arbitrage_opportunity: boolean;
+}
+
+export interface CombinedNFLResponse {
+  games: CombinedNFLGame[];
+  summary: {
+    total_games: number;
+    dome_comparisons: number;
+    rundown_events: number;
+  };
+  timestamp: string;
+}
+
