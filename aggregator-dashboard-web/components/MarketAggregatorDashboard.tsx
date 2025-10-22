@@ -125,6 +125,96 @@ export default function MarketAggregatorDashboard() {
     });
   };
 
+  // Helper to get Kalshi odds matched to teams
+  const getKalshiOddsForTeams = (kalshiData: any, team1: string, team2: string) => {
+    if (!kalshiData || !kalshiData.market_id || !kalshiData.outcomes || kalshiData.outcomes.length < 2) {
+      return { team1Odds: '-', team2Odds: '-' };
+    }
+
+    // Parse market_id like "KXNFLGAME-25OCT23MINLAC-LAC"
+    const marketId = kalshiData.market_id;
+    const parts = marketId.split('-');
+    
+    if (parts.length < 2) {
+      return { team1Odds: '-', team2Odds: '-' };
+    }
+
+    // Last part is the team code that "Yes" is for
+    const yesTeamCode = parts[parts.length - 1];
+    
+    // Find team names that match this code
+    const yesTeamNames = NFL_TEAM_ABBREV[yesTeamCode] || [];
+    
+    const yesOutcome = kalshiData.outcomes.find((o: any) => o.name.toLowerCase().includes('yes'));
+    const noOutcome = kalshiData.outcomes.find((o: any) => o.name.toLowerCase().includes('no'));
+    
+    if (!yesOutcome || !noOutcome) {
+      return { team1Odds: '-', team2Odds: '-' };
+    }
+
+    // Check which team matches the "Yes" outcome
+    const team1Lower = team1.toLowerCase();
+    const team2Lower = team2.toLowerCase();
+    
+    const matchesTeam1 = yesTeamNames.some(name =>
+      team1Lower.includes(name.toLowerCase()) || name.toLowerCase().includes(team1Lower)
+    );
+    const matchesTeam2 = yesTeamNames.some(name =>
+      team2Lower.includes(name.toLowerCase()) || name.toLowerCase().includes(team2Lower)
+    );
+
+    if (matchesTeam1) {
+      return {
+        team1Odds: yesOutcome.american_odds,
+        team2Odds: noOutcome.american_odds
+      };
+    } else if (matchesTeam2) {
+      return {
+        team1Odds: noOutcome.american_odds,
+        team2Odds: yesOutcome.american_odds
+      };
+    }
+
+    // Fallback
+    return { team1Odds: '-', team2Odds: '-' };
+  };
+
+  // NFL team abbreviations for Kalshi matching
+  const NFL_TEAM_ABBREV: Record<string, string[]> = {
+    'ARI': ['Cardinals', 'Arizona'],
+    'ATL': ['Falcons', 'Atlanta'],
+    'BAL': ['Ravens', 'Baltimore'],
+    'BUF': ['Bills', 'Buffalo'],
+    'CAR': ['Panthers', 'Carolina'],
+    'CHI': ['Bears', 'Chicago'],
+    'CIN': ['Bengals', 'Cincinnati'],
+    'CLE': ['Browns', 'Cleveland'],
+    'DAL': ['Cowboys', 'Dallas'],
+    'DEN': ['Broncos', 'Denver'],
+    'DET': ['Lions', 'Detroit'],
+    'GB': ['Packers', 'Green Bay'],
+    'HOU': ['Texans', 'Houston'],
+    'IND': ['Colts', 'Indianapolis'],
+    'JAX': ['Jaguars', 'Jacksonville'],
+    'KC': ['Chiefs', 'Kansas City'],
+    'LV': ['Raiders', 'Las Vegas'],
+    'LAC': ['Chargers', 'Los Angeles Chargers', 'LA Chargers'],
+    'LAR': ['Rams', 'Los Angeles Rams', 'LA Rams'],
+    'MIA': ['Dolphins', 'Miami'],
+    'MIN': ['Vikings', 'Minnesota'],
+    'NE': ['Patriots', 'New England'],
+    'NO': ['Saints', 'New Orleans'],
+    'NYG': ['Giants', 'New York Giants', 'NY Giants'],
+    'NYJ': ['Jets', 'New York Jets', 'NY Jets'],
+    'PHI': ['Eagles', 'Philadelphia'],
+    'PIT': ['Steelers', 'Pittsburgh'],
+    'SF': ['49ers', 'San Francisco'],
+    'SEA': ['Seahawks', 'Seattle'],
+    'TB': ['Buccaneers', 'Tampa Bay'],
+    'TEN': ['Titans', 'Tennessee'],
+    'WAS': ['Commanders', 'Washington']
+  };
+
   // Normalize team names for consistent display
   const normalizeTeamName = (name: string) => {
     const teamMap: Record<string, string> = {
@@ -868,31 +958,32 @@ export default function MarketAggregatorDashboard() {
                                   )}
 
                                 {getVisibilityFor(idx).kalshi &&
-                                  game.kalshi && (
-                                    <tr className="border-b border-gray-800">
-                                      <td className="py-2 pr-6 text-green-400 font-semibold">
-                                        Kalshi
-                                      </td>
-                                      <td className="py-2 pr-6">
-                                        {normalizeTeamName(game.teams.team1)}
-                                      </td>
-                                      <td className="py-2 pr-6">
-                                        {game.kalshi.outcomes[0]
-                                          ? game.kalshi.outcomes[0]
-                                              .american_odds
-                                          : "-"}
-                                      </td>
-                                      <td className="py-2 pr-6">
-                                        {normalizeTeamName(game.teams.team2)}
-                                      </td>
-                                      <td className="py-2 pr-6">
-                                        {game.kalshi.outcomes[1]
-                                          ? game.kalshi.outcomes[1]
-                                              .american_odds
-                                          : "-"}
-                                      </td>
-                                    </tr>
-                                  )}
+                                  game.kalshi && (() => {
+                                    const kalshiOdds = getKalshiOddsForTeams(
+                                      game.kalshi,
+                                      normalizeTeamName(game.teams.team1),
+                                      normalizeTeamName(game.teams.team2)
+                                    );
+                                    return (
+                                      <tr className="border-b border-gray-800">
+                                        <td className="py-2 pr-6 text-green-400 font-semibold">
+                                          Kalshi
+                                        </td>
+                                        <td className="py-2 pr-6">
+                                          {normalizeTeamName(game.teams.team1)}
+                                        </td>
+                                        <td className="py-2 pr-6">
+                                          {kalshiOdds.team1Odds}
+                                        </td>
+                                        <td className="py-2 pr-6">
+                                          {normalizeTeamName(game.teams.team2)}
+                                        </td>
+                                        <td className="py-2 pr-6">
+                                          {kalshiOdds.team2Odds}
+                                        </td>
+                                      </tr>
+                                    );
+                                  })()}
 
                                 {getVisibilityFor(idx).sportsbooks &&
                                   game.traditional_odds &&
