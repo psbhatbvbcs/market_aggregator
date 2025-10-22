@@ -30,6 +30,37 @@ MANUAL_MAPPINGS = {
             "polymarket_id": "0x576ddfc4a6f4641d33af22a70c5c533f6ff52d1b0bf3bf127ebdc30c7f573b85",
             "kalshi_id": "KXXIVISITUSA-26JAN01",
             "description": "Will XI visit the USA in 2025?"
+        },
+        # Where will Putin and Zelenskyy meet next? (Multiple location markets)
+        {
+            "polymarket_id": "0x18f7637335809af5c5fdc9f3158207bc06a63fbb71fe35d8a7e812142f91f701",
+            "kalshi_id": "KXPUTINZELENSKYYLOCATION-28-RUS",
+            "description": "Putin-Zelenskyy meeting location: Russia"
+        },
+        {
+            "polymarket_id": "0x715eb6357edc59dc38d9f7da929e63be58fa4d3b7bd1415d7950a60bd4317827",
+            "kalshi_id": "KXPUTINZELENSKYYLOCATION-28-TUR",
+            "description": "Putin-Zelenskyy meeting location: Turkey"
+        },
+        {
+            "polymarket_id": "0x68f3f79ee22ffd2e212bd9f1e1491baf15501e4186782702dfa646c10465720a",
+            "kalshi_id": "KXPUTINZELENSKYYLOCATION-28-UKR",
+            "description": "Putin-Zelenskyy meeting location: Ukraine"
+        },
+        {
+            "polymarket_id": "0xca1aa5189411c86afb30b84dd76ae8ad3fbdc0b07c74c4180bcae7da1b2d1861",
+            "kalshi_id": "KXPUTINZELENSKYYLOCATION-28-CHI",
+            "description": "Putin-Zelenskyy meeting location: China"
+        },
+        {
+            "polymarket_id": "0xb4cf7ea4502155f89905021917d22b26b01867582abdc6104995517465c57d91",
+            "kalshi_id": "KXPUTINZELENSKYYLOCATION-28-UNI",
+            "description": "Putin-Zelenskyy meeting location: United States"
+        },
+        {
+            "polymarket_id": "0xcff999e258f449a28ba7e6985a822abbfbbe07b846b477beaf1f68ea469cec4c",
+            "kalshi_id": "KXPUTINZELENSKYYLOCATION-28-HUNG",
+            "description": "Putin-Zelenskyy meeting location: Hungary"
         }
     ],
     

@@ -11,7 +11,6 @@ import {
   TraditionalOddsResponse,
   PoliticsResponse,
   CryptoResponse,
-  RundownResponse,
   DomeResponse,
   OthersResponse,
   OthersComparison,
@@ -34,7 +33,6 @@ export default function MarketAggregatorDashboard() {
   const [politics, setPolitics] = useState<PoliticsResponse | null>(null);
   const [crypto, setCrypto] = useState<CryptoResponse | null>(null);
   const [others, setOthers] = useState<OthersResponse | null>(null);
-  const [rundown, setRundown] = useState<RundownResponse | null>(null);
   const [dome, setDome] = useState<DomeResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [domeLoading, setDomeLoading] = useState(false);
@@ -46,9 +44,6 @@ export default function MarketAggregatorDashboard() {
   >("combined");
   const [othersOffset, setOthersOffset] = useState(0);
   const OTHERS_LIMIT = 10;
-  const [rundownDate, setRundownDate] = useState<string>(
-    new Date().toISOString().split("T")[0]
-  );
   const [nflCombinedDate, setNflCombinedDate] = useState<string>(
     new Date().toISOString().split("T")[0]
   );
@@ -360,7 +355,7 @@ export default function MarketAggregatorDashboard() {
     }
   };
 
-  // Fetch NFL Combined (Dome + Rundown)
+  // Fetch NFL Combined (Dome + Traditional)
   const fetchNFLCombined = async () => {
     try {
       const response = await fetch(
@@ -424,24 +419,6 @@ export default function MarketAggregatorDashboard() {
     }
   };
 
-  // Fetch Rundown Markets
-  const fetchRundown = async (date?: string) => {
-    try {
-      const dateParam = date || rundownDate;
-      const response = await fetch(
-        `${API_BASE_URL}/rundown?date_str=${dateParam}`
-      );
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Failed to fetch rundown markets");
-      }
-      const data = await response.json();
-      setRundown(data);
-    } catch (err: any) {
-      console.error("Error fetching rundown markets:", err);
-      setError(err.message || "Failed to fetch rundown markets");
-    }
-  };
 
   // Fetch Dome Markets
   const fetchDome = async () => {
@@ -492,8 +469,6 @@ export default function MarketAggregatorDashboard() {
         await fetchOthers();
       } else if (activeTab === "dome") {
         // Dome is fetched on-demand via form submission
-      } else if (activeTab === "rundown") {
-        // Rundown is fetched on-demand via form submission
       }
     } catch (err) {
       console.error("Error fetching tab data:", err);
@@ -529,12 +504,6 @@ export default function MarketAggregatorDashboard() {
     fetchDome();
   };
 
-  const handleRundownSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (rundownDate) {
-      fetchRundown(rundownDate);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
@@ -624,12 +593,6 @@ export default function MarketAggregatorDashboard() {
                 className="data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none bg-transparent text-gray-400 border-0 px-0 pb-2 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-white hover:text-gray-200"
               >
                 Politics
-              </TabsTrigger>
-              <TabsTrigger
-                value="rundown"
-                className="data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none bg-transparent text-gray-400 border-0 px-0 pb-2 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-white hover:text-gray-200"
-              >
-                Rundown
               </TabsTrigger>
               <TabsTrigger
                 value="others"
@@ -1328,96 +1291,6 @@ export default function MarketAggregatorDashboard() {
             )}
           </TabsContent>
 
-          {/* Rundown Tab */}
-          <TabsContent value="rundown" className="space-y-4">
-            {/* Date Picker */}
-            <div className="bg-[#1a1a1a] rounded-lg p-6 border border-gray-800">
-              <h3 className="text-xl font-semibold text-white mb-4">
-                Select Date for Sports Odds
-              </h3>
-              <form onSubmit={handleRundownSubmit}>
-                <div className="flex items-center gap-4">
-                  <label
-                    htmlFor="rundown-date"
-                    className="text-sm font-medium text-gray-300"
-                  >
-                    Game Date:
-                  </label>
-                  <input
-                    type="date"
-                    id="rundown-date"
-                    value={rundownDate}
-                    onChange={(e) => setRundownDate(e.target.value)}
-                    className="p-2 bg-[#0a0a0a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-gray-600"
-                    required
-                  />
-                  <button
-                    type="submit"
-                    className="px-6 py-2 bg-white text-black rounded-lg font-medium hover:bg-gray-100 transition-colors"
-                  >
-                    Search
-                  </button>
-                </div>
-              </form>
-            </div>
-
-            {rundown && (
-              <>
-                {/* Events */}
-                {rundown.events && rundown.events.length > 0 ? (
-                  <div className="space-y-4">
-                    {rundown.events.map((event) => (
-                      <div
-                        key={event.event_id}
-                        className="bg-[#1a1a1a] rounded-lg p-6 border border-gray-800"
-                      >
-                        <h3 className="text-lg font-semibold mb-2">
-                          {event.away_team} @ {event.home_team}
-                        </h3>
-                        <div className="text-sm text-gray-400 mb-4">
-                          {new Date(event.event_date).toLocaleString()}
-                        </div>
-                        <div className="space-y-2">
-                          <div className="grid grid-cols-3 font-bold text-sm">
-                            <span>Bookmaker</span>
-                            <span className="text-right">
-                              {event.away_team}
-                            </span>
-                            <span className="text-right">
-                              {event.home_team}
-                            </span>
-                          </div>
-                          {event.lines.map((line) => (
-                            <div
-                              key={line.affiliate_name}
-                              className="grid grid-cols-3 text-sm border-t border-gray-800 pt-2"
-                            >
-                              <span>{line.affiliate_name}</span>
-                              <span className="text-right">
-                                {line.moneyline_away > 0
-                                  ? `+${line.moneyline_away}`
-                                  : line.moneyline_away}
-                              </span>
-                              <span className="text-right">
-                                {line.moneyline_home > 0
-                                  ? `+${line.moneyline_home}`
-                                  : line.moneyline_home}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center text-gray-500 py-8">
-                    No rundown data available at the moment. Please ensure your
-                    RAPIDAPI_KEY is set correctly.
-                  </div>
-                )}
-              </>
-            )}
-          </TabsContent>
         </Tabs>
 
         {/* Footer */}

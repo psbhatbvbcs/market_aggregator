@@ -108,9 +108,42 @@ class KalshiClient:
             print(f"Error making Kalshi request to {endpoint}: {e}")
             return None
     
+    def fetch_market_by_ticker(self, market_ticker: str) -> Optional[UnifiedMarket]:
+        """
+        Fetch a specific market by its market ticker (not event ticker)
+        
+        Args:
+            market_ticker: The market ticker (e.g., KXPUTINZELENSKYYLOCATION-28-RUS)
+        
+        Returns:
+            UnifiedMarket or None if not found
+        """
+        try:
+            url = f"https://api.elections.kalshi.com/trade-api/v2/markets/{market_ticker}"
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
+            
+            data = response.json()
+            market_data = data.get('market', {})
+            
+            if not market_data:
+                print(f"Kalshi: No market data found for ticker '{market_ticker}'")
+                return None
+            
+            unified = self._convert_to_unified(market_data)
+            
+            if unified:
+                print(f"Kalshi: Fetched market '{market_ticker}'")
+            
+            return unified
+            
+        except Exception as e:
+            print(f"Error fetching Kalshi market {market_ticker}: {e}")
+            return None
+    
     def fetch_market_by_event_ticker(self, event_ticker: str) -> List[UnifiedMarket]:
         """
-        Fetch a specific market by event ticker
+        Fetch all markets within an event by event ticker
         
         Args:
             event_ticker: The event ticker (e.g., KXXIVISITUSA-26JAN01)

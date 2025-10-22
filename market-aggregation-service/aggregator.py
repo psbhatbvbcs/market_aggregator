@@ -115,12 +115,35 @@ class MarketAggregator:
                     if poly_market:
                         group.append(poly_market)
                 
-                # Try to find Kalshi market
+                # Try to find Kalshi market (check if it's already loaded)
                 kalshi_id = mapping.get("kalshi_id")
                 if kalshi_id:
                     kalshi_market = markets_by_platform_id.get(("kalshi_id", kalshi_id))
                     if kalshi_market:
                         group.append(kalshi_market)
+                    else:
+                        # If not found in already-loaded markets, try fetching by market ticker
+                        # This handles cases where we need specific markets not in the general fetch
+                        print(f"  → Fetching Kalshi market by ticker: {kalshi_id}")
+                        try:
+                            # Check if it looks like a market ticker (has dashes like KXPUTIN...-28-RUS)
+                            # vs event ticker (KXPUTIN...-28)
+                            if kalshi_id.count('-') >= 2:
+                                # Looks like a market ticker - use fetch_market_by_ticker
+                                fetched_market = self.kalshi_client.fetch_market_by_ticker(kalshi_id)
+                                if fetched_market:
+                                    group.append(fetched_market)
+                                    # Also add to all_markets so it can be used elsewhere
+                                    self.all_markets.append(fetched_market)
+                            else:
+                                # Looks like an event ticker - use fetch_market_by_event_ticker
+                                fetched_markets = self.kalshi_client.fetch_market_by_event_ticker(kalshi_id)
+                                if fetched_markets:
+                                    group.extend(fetched_markets)
+                                    # Also add to all_markets
+                                    self.all_markets.extend(fetched_markets)
+                        except Exception as e:
+                            print(f"  ✗ Error fetching Kalshi market {kalshi_id}: {e}")
                 
                 
                 # Only add if we found at least 2 markets from different platforms

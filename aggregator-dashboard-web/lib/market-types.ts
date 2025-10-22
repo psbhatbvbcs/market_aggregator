@@ -115,6 +115,16 @@ export interface CryptoComparison {
   polymarket: MarketData | null;
   kalshi: MarketData | null;
   limitless: MarketData | null;
+  kalshi_by_team?: Array<{
+    team_normalized: string;
+    team_display: string;
+    market_id: string;
+    volume: number;
+    liquidity: number;
+    start_time?: string;
+    yes: Outcome | null;
+    no: Outcome | null;
+  }>;
 }
 
 export interface CryptoResponse {
@@ -126,28 +136,10 @@ export interface CryptoResponse {
   timestamp: string;
 }
 
-export interface RundownLine {
+export interface TraditionalOddsLine {
   affiliate_name: string;
   moneyline_home: number;
   moneyline_away: number;
-}
-
-export interface RundownEvent {
-  event_id: string;
-  sport_id: number;
-  event_date: string;
-  home_team: string;
-  away_team: string;
-  lines: RundownLine[];
-}
-
-export interface RundownResponse {
-  events: RundownEvent[];
-  summary: {
-    total_events: number;
-    total_bookmakers: number;
-  };
-  timestamp: string;
 }
 
 export interface DomeComparison {
@@ -158,6 +150,16 @@ export interface DomeComparison {
   polymarket: MarketData | null;
   kalshi: MarketData | null;
   limitless: MarketData | null;
+  kalshi_by_team?: Array<{
+    team_normalized: string;
+    team_display: string;
+    market_id: string;
+    volume: number;
+    liquidity: number;
+    start_time?: string;
+    yes: Outcome | null;
+    no: Outcome | null;
+  }>;
 }
 
 export interface DomeResponse {
@@ -197,7 +199,7 @@ export interface CombinedNFLGame {
   };
   polymarket: MarketData | null;
   kalshi: MarketData | null;
-  traditional_odds: RundownLine[];
+  traditional_odds: TraditionalOddsLine[];
   price_spread: number;
   arbitrage_opportunity: boolean;
 }
@@ -207,7 +209,7 @@ export interface CombinedNFLResponse {
   summary: {
     total_games: number;
     dome_comparisons: number;
-    rundown_events: number;
+    traditional_events: number;
   };
   timestamp: string;
 }

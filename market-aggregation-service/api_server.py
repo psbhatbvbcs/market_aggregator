@@ -56,13 +56,23 @@ dome_client = DomeAPIClient(api_key=config.get('API_KEYS', 'DOME_API_KEY', fallb
 odds_api_key = config.get('API_KEYS', 'ODDS_API_KEY', fallback=None)
 odds_client = OddsAPIClient(odds_api_key)
 
-# Simple in-memory cache for external "others" endpoint
-OTHERS_CACHE_TTL_SECONDS = 5
+# Simple in-memory cache for endpoints
+CACHE_TTL_SECONDS = 30  # Cache for 30 seconds
 _others_cache_payload: Optional[Dict[str, Any]] = None
 _others_cache_limit: Optional[int] = None
 _others_cache_offset: Optional[int] = None
 _others_cache_ts: float = 0.0
 _others_cache_lock = asyncio.Lock()
+
+# Politics cache
+_politics_cache_payload: Optional[Dict[str, Any]] = None
+_politics_cache_ts: float = 0.0
+_politics_cache_lock = asyncio.Lock()
+
+# Crypto cache  
+_crypto_cache_payload: Optional[Dict[str, Any]] = None
+_crypto_cache_ts: float = 0.0
+_crypto_cache_lock = asyncio.Lock()
 
 
 def filter_future_markets(markets):
@@ -416,100 +426,127 @@ async def get_politics_markets():
     Get politics market comparisons from Polymarket and Kalshi
     """
     try:
-        politics_mappings = MANUAL_MAPPINGS.get('politics', [])
+        global _politics_cache_payload, _politics_cache_ts
         
-        if not politics_mappings:
-            return {
-                "comparisons": [],
-                "summary": {
-                    "total_comparisons": 0
-                }
-            }
+        # Check cache first
+        now = time.time()
+        if _politics_cache_payload is not None and (now - _politics_cache_ts) < CACHE_TTL_SECONDS:
+            return _politics_cache_payload
         
-        comparison_data = []
-        
-        for mapping in politics_mappings:
-            poly_id = mapping.get('polymarket_id')
-            kalshi_id = mapping.get('kalshi_id')
-            description = mapping.get('description', 'Unknown Market')
+        # Acquire lock to prevent multiple simultaneous fetches
+        async with _politics_cache_lock:
+            # Double-check cache after acquiring lock
+            now = time.time()
+            if _politics_cache_payload is not None and (now - _politics_cache_ts) < CACHE_TTL_SECONDS:
+                return _politics_cache_payload
             
-            if not poly_id or not kalshi_id:
-                continue
+            politics_mappings = MANUAL_MAPPINGS.get('politics', [])
             
-            try:
-                # Fetch markets
-                poly_market = poly_client.fetch_market_by_id(poly_id)
-                kalshi_markets = kalshi_client.fetch_market_by_event_ticker(kalshi_id)
-                kalshi_market = kalshi_markets[0] if kalshi_markets else None
-                
-                if not poly_market or not kalshi_market:
-                    continue
-                
-                # Get Yes prices
-                poly_yes_price = None
-                kalshi_yes_price = None
-                
-                for outcome in poly_market.outcomes:
-                    if 'yes' in outcome.name.lower():
-                        poly_yes_price = outcome.price
-                        break
-                
-                for outcome in kalshi_market.outcomes:
-                    if 'yes' in outcome.name.lower():
-                        kalshi_yes_price = outcome.price
-                        break
-                
-                if not poly_yes_price or not kalshi_yes_price:
-                    continue
-                
-                # Calculate spread
-                price_spread = abs(poly_yes_price - kalshi_yes_price) * 100
-                best_platform = "polymarket" if poly_yes_price > kalshi_yes_price else "kalshi"
-                
-                comparison_item = {
-                    "title": description,
-                    "price_spread": price_spread,
-                    "best_platform": best_platform,
-                    "arbitrage_opportunity": price_spread > 5.0,
-                    "polymarket": {
-                        "market_id": poly_market.market_id,
-                        "outcomes": [
-                            {
-                                "name": o.name,
-                                "price": o.price,
-                                "american_odds": o.american_odds
-                            } for o in poly_market.outcomes
-                        ],
-                        "volume": poly_market.total_volume,
-                        "liquidity": poly_market.liquidity
-                    },
-                    "kalshi": {
-                        "market_id": kalshi_market.market_id,
-                        "outcomes": [
-                            {
-                                "name": o.name,
-                                "price": o.price,
-                                "american_odds": o.american_odds
-                            } for o in kalshi_market.outcomes
-                        ],
-                        "volume": kalshi_market.total_volume,
-                        "liquidity": kalshi_market.liquidity
+            if not politics_mappings:
+                return {
+                    "comparisons": [],
+                    "summary": {
+                        "total_comparisons": 0
                     }
                 }
-                comparison_data.append(comparison_item)
+            
+            comparison_data = []
+            
+            for mapping in politics_mappings:
+                poly_id = mapping.get('polymarket_id')
+                kalshi_id = mapping.get('kalshi_id')
+                description = mapping.get('description', 'Unknown Market')
                 
-            except Exception as e:
-                print(f"Error processing politics market {description}: {e}")
-                continue
-        
-        return {
-            "comparisons": comparison_data,
-            "summary": {
-                "total_comparisons": len(comparison_data),
-                "arbitrage_opportunities": sum(1 for c in comparison_data if c.get("arbitrage_opportunity", False))
-            },
-            "timestamp": datetime.now().isoformat()
-        }
+                if not poly_id or not kalshi_id:
+                    continue
+                
+                try:
+                    # Fetch markets
+                    poly_market = poly_client.fetch_market_by_id(poly_id)
+                    
+                    # Determine if kalshi_id is a market ticker or event ticker
+                    if kalshi_id.count('-') >= 2:
+                        # Market ticker (e.g., KXPUTINZELENSKYYLOCATION-28-RUS)
+                        kalshi_market = kalshi_client.fetch_market_by_ticker(kalshi_id)
+                    else:
+                        # Event ticker (e.g., KXXIVISITUSA-26JAN01)
+                        kalshi_markets = kalshi_client.fetch_market_by_event_ticker(kalshi_id)
+                        kalshi_market = kalshi_markets[0] if kalshi_markets else None
+                    
+                    if not poly_market or not kalshi_market:
+                        continue
+                    
+                    # Get Yes prices
+                    poly_yes_price = None
+                    kalshi_yes_price = None
+                    
+                    for outcome in poly_market.outcomes:
+                        if 'yes' in outcome.name.lower():
+                            poly_yes_price = outcome.price
+                            break
+                    
+                    for outcome in kalshi_market.outcomes:
+                        if 'yes' in outcome.name.lower():
+                            kalshi_yes_price = outcome.price
+                            break
+                    
+                    if not poly_yes_price or not kalshi_yes_price:
+                        continue
+                    
+                    # Calculate spread
+                    price_spread = abs(poly_yes_price - kalshi_yes_price) * 100
+                    best_platform = "polymarket" if poly_yes_price > kalshi_yes_price else "kalshi"
+                    
+                    comparison_item = {
+                        "title": description,
+                        "price_spread": price_spread,
+                        "best_platform": best_platform,
+                        "arbitrage_opportunity": price_spread > 5.0,
+                        "polymarket": {
+                            "market_id": poly_market.market_id,
+                            "outcomes": [
+                                {
+                                    "name": o.name,
+                                    "price": o.price,
+                                    "american_odds": o.american_odds
+                                } for o in poly_market.outcomes
+                            ],
+                            "volume": poly_market.total_volume,
+                            "liquidity": poly_market.liquidity
+                        },
+                        "kalshi": {
+                            "market_id": kalshi_market.market_id,
+                            "outcomes": [
+                                {
+                                    "name": o.name,
+                                    "price": o.price,
+                                    "american_odds": o.american_odds
+                                } for o in kalshi_market.outcomes
+                            ],
+                            "volume": kalshi_market.total_volume,
+                            "liquidity": kalshi_market.liquidity
+                        }
+                    }
+                    comparison_data.append(comparison_item)
+                    
+                except Exception as e:
+                    print(f"Error processing politics market {description}: {e}")
+                    continue
+            
+            payload = {
+                "comparisons": comparison_data,
+                "summary": {
+                    "total_comparisons": len(comparison_data),
+                    "arbitrage_opportunities": sum(1 for c in comparison_data if c.get("arbitrage_opportunity", False))
+                },
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            # Update cache
+            _politics_cache_payload = payload
+            _politics_cache_ts = time.time()
+            
+            return payload
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -657,8 +694,14 @@ async def get_crypto_markets():
                 poly_market = poly_client.fetch_market_by_id(poly_id) if poly_id else None
                 kalshi_market = None
                 if kalshi_id:
-                    kalshi_markets = kalshi_client.fetch_market_by_event_ticker(kalshi_id)
-                    kalshi_market = kalshi_markets[0] if kalshi_markets else None
+                    # Determine if kalshi_id is a market ticker or event ticker
+                    if kalshi_id.count('-') >= 2:
+                        # Market ticker (e.g., KXPUTINZELENSKYYLOCATION-28-RUS)
+                        kalshi_market = kalshi_client.fetch_market_by_ticker(kalshi_id)
+                    else:
+                        # Event ticker (e.g., KXXIVISITUSA-26JAN01)
+                        kalshi_markets = kalshi_client.fetch_market_by_event_ticker(kalshi_id)
+                        kalshi_market = kalshi_markets[0] if kalshi_markets else None
                 limitless_market = limitless_client.fetch_market_by_id(limitless_id) if limitless_id else None
                 
                 # Skip only if we have no valid markets
@@ -935,7 +978,7 @@ async def get_others_matched_markets(limit: int = Query(10, ge=1, le=100), offse
             _others_cache_payload is not None
             and _others_cache_limit == limit
             and _others_cache_offset == offset
-            and (now - _others_cache_ts) < OTHERS_CACHE_TTL_SECONDS
+            and (now - _others_cache_ts) < CACHE_TTL_SECONDS
         ):
             return _others_cache_payload
 
@@ -946,7 +989,7 @@ async def get_others_matched_markets(limit: int = Query(10, ge=1, le=100), offse
                 _others_cache_payload is not None
                 and _others_cache_limit == limit
                 and _others_cache_offset == offset
-                and (now - _others_cache_ts) < OTHERS_CACHE_TTL_SECONDS
+                and (now - _others_cache_ts) < CACHE_TTL_SECONDS
             ):
                 return _others_cache_payload
 
