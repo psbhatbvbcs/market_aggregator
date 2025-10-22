@@ -34,10 +34,11 @@ export default function MarketAggregatorDashboard() {
   const [crypto, setCrypto] = useState<CryptoResponse | null>(null);
   const [others, setOthers] = useState<OthersResponse | null>(null);
   const [dome, setDome] = useState<DomeResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [domeLoading, setDomeLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState("nfl");
   const [nflSubTab, setNflSubTab] = useState<
     "crypto" | "traditional" | "combined"
@@ -426,9 +427,11 @@ export default function MarketAggregatorDashboard() {
       if (!response.ok) throw new Error("Failed to fetch NFL crypto markets");
       const data = await response.json();
       setNflCrypto(data);
+      setLastUpdate(new Date());
     } catch (err) {
       console.error("Error fetching NFL crypto markets:", err);
-      setError("Failed to fetch NFL crypto markets");
+      setError(err instanceof Error ? err.message : "Failed to fetch NFL crypto markets");
+      throw err;
     }
   };
 
@@ -439,9 +442,11 @@ export default function MarketAggregatorDashboard() {
       if (!response.ok) throw new Error("Failed to fetch NFL traditional odds");
       const data = await response.json();
       setNflTraditional(data);
+      setLastUpdate(new Date());
     } catch (err) {
       console.error("Error fetching NFL traditional odds:", err);
-      setError("Failed to fetch NFL traditional odds");
+      setError(err instanceof Error ? err.message : "Failed to fetch NFL traditional odds");
+      throw err;
     }
   };
 
@@ -454,9 +459,11 @@ export default function MarketAggregatorDashboard() {
       if (!response.ok) throw new Error("Failed to fetch NFL combined markets");
       const data = await response.json();
       setNflCombined(data);
+      setLastUpdate(new Date());
     } catch (err) {
       console.error("Error fetching NFL combined markets:", err);
-      setError("Failed to fetch NFL combined markets");
+      setError(err instanceof Error ? err.message : "Failed to fetch NFL combined markets");
+      throw err;
     }
   };
 
@@ -467,9 +474,11 @@ export default function MarketAggregatorDashboard() {
       if (!response.ok) throw new Error("Failed to fetch politics markets");
       const data = await response.json();
       setPolitics(data);
+      setLastUpdate(new Date());
     } catch (err) {
       console.error("Error fetching politics markets:", err);
-      setError("Failed to fetch politics markets");
+      setError(err instanceof Error ? err.message : "Failed to fetch politics markets");
+      throw err;
     }
   };
 
@@ -480,9 +489,11 @@ export default function MarketAggregatorDashboard() {
       if (!response.ok) throw new Error("Failed to fetch crypto markets");
       const data = await response.json();
       setCrypto(data);
+      setLastUpdate(new Date());
     } catch (err) {
       console.error("Error fetching crypto markets:", err);
-      setError("Failed to fetch crypto markets");
+      setError(err instanceof Error ? err.message : "Failed to fetch crypto markets");
+      throw err;
     }
   };
 
@@ -503,9 +514,10 @@ export default function MarketAggregatorDashboard() {
         return;
       }
       setOthers(data as OthersResponse);
+      setLastUpdate(new Date());
     } catch (err) {
       console.error("Error fetching others markets:", err);
-      setError("Failed to fetch others markets");
+      setError(err instanceof Error ? err.message : "Failed to fetch others markets");
     }
   };
 
@@ -529,17 +541,22 @@ export default function MarketAggregatorDashboard() {
       if (!response.ok) throw new Error("Failed to fetch dome markets");
       const data = await response.json();
       setDome(data);
+      setLastUpdate(new Date());
     } catch (err) {
       console.error("Error fetching dome markets:", err);
-      setError("Failed to fetch dome markets");
+      setError(err instanceof Error ? err.message : "Failed to fetch dome markets");
     } finally {
       setDomeLoading(false);
     }
   };
 
   // Fetch data based on active tab
-  const fetchCurrentTabData = async () => {
-    setLoading(true);
+  const fetchCurrentTabData = async (isManualRefresh = false) => {
+    if (isManualRefresh) {
+      setIsRefreshing(true);
+    } else {
+      setLoading(true);
+    }
     setError(null);
 
     try {
@@ -560,27 +577,43 @@ export default function MarketAggregatorDashboard() {
       } else if (activeTab === "dome") {
         // Dome is fetched on-demand via form submission
       }
+      setLastUpdate(new Date());
     } catch (err) {
       console.error("Error fetching tab data:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch data");
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
     }
-
-    setLastUpdate(new Date());
-    setLoading(false);
   };
 
-  // Initial data fetch when tab changes
-  useEffect(() => {
-    fetchCurrentTabData();
-  }, [activeTab, nflSubTab, nflCombinedDate]);
+  // Manual refresh handler
+  const handleRefresh = () => {
+    fetchCurrentTabData(true);
+  };
 
-  // Poll for current tab data every 10 seconds
+  // Initial data fetch ONLY when tab or sub-tab changes
   useEffect(() => {
-    const interval = setInterval(() => {
+    // Only fetch if we don't already have data for this tab
+    const shouldFetch = 
+      (activeTab === "nfl" && nflSubTab === "crypto" && !nflCrypto) ||
+      (activeTab === "nfl" && nflSubTab === "traditional" && !nflTraditional) ||
+      (activeTab === "nfl" && nflSubTab === "combined" && !nflCombined) ||
+      (activeTab === "politics" && !politics) ||
+      (activeTab === "crypto" && !crypto) ||
+      (activeTab === "others" && !others);
+    
+    if (shouldFetch) {
       fetchCurrentTabData();
-    }, 10000); // 10 seconds
+    }
+  }, [activeTab, nflSubTab]);
 
-    return () => clearInterval(interval);
-  }, [activeTab, nflSubTab, nflCombinedDate]);
+  // Fetch when date changes for NFL combined
+  useEffect(() => {
+    if (activeTab === "nfl" && nflSubTab === "combined") {
+      fetchNFLCombined();
+    }
+  }, [nflCombinedDate]);
 
   // Fetch Others data when offset changes
   useEffect(() => {
@@ -603,9 +636,26 @@ export default function MarketAggregatorDashboard() {
           <h1 className="text-2xl font-semibold text-white">
             Market Aggregator Dashboard
           </h1>
-          <button className="px-6 py-2 bg-white text-black rounded-lg font-medium hover:bg-gray-100 transition-colors">
-            Connect Wallet
-          </button>
+          <div className="flex items-center gap-4">
+            {/* Last Update Time */}
+            {lastUpdate && (
+              <div className="text-sm text-gray-400">
+                Last updated: {lastUpdate.toLocaleTimeString()}
+              </div>
+            )}
+            {/* Refresh Button */}
+            <button 
+              onClick={handleRefresh}
+              disabled={isRefreshing || loading}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? 'Refreshing...' : 'Refresh'}
+            </button>
+            <button className="px-6 py-2 bg-white text-black rounded-lg font-medium hover:bg-gray-100 transition-colors">
+              Connect Wallet
+            </button>
+          </div>
         </div>
 
         {/* Error Display */}
@@ -1235,10 +1285,22 @@ export default function MarketAggregatorDashboard() {
                   <button
                     type="submit"
                     disabled={domeLoading}
-                    className="px-6 py-2 bg-white text-black rounded-lg font-medium hover:bg-gray-100 disabled:bg-gray-600 disabled:text-gray-400 transition-colors"
+                    className="px-6 py-2 bg-white text-black rounded-lg font-medium hover:bg-gray-100 disabled:bg-gray-600 disabled:text-gray-400 transition-colors flex items-center gap-2"
                   >
+                    {domeLoading && <RefreshCw className="w-4 h-4 animate-spin" />}
                     {domeLoading ? "Searching..." : "Search"}
                   </button>
+                  {dome && !domeLoading && (
+                    <button
+                      type="button"
+                      onClick={fetchDome}
+                      disabled={domeLoading}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      Refresh
+                    </button>
+                  )}
                 </div>
               </form>
             </div>
