@@ -130,6 +130,205 @@ export default function MarketAggregatorDashboard() {
     });
   };
 
+  // Normalize team names for consistent display
+  const normalizeTeamName = (name: string) => {
+    const teamMap: Record<string, string> = {
+      // Buffalo Bills variations
+      buf: "Buffalo Bills",
+      buff: "Buffalo Bills",
+      bills: "Buffalo Bills",
+      "buffalo bills": "Buffalo Bills",
+      buffalo: "Buffalo Bills",
+
+      // Carolina Panthers variations
+      car: "Carolina Panthers",
+      panthers: "Carolina Panthers",
+      "carolina panthers": "Carolina Panthers",
+      carolina: "Carolina Panthers",
+
+      // Chicago Bears variations
+      chi: "Chicago Bears",
+      bears: "Chicago Bears",
+      "chicago bears": "Chicago Bears",
+      chicago: "Chicago Bears",
+
+      // Baltimore Ravens variations
+      bal: "Baltimore Ravens",
+      ravens: "Baltimore Ravens",
+      "baltimore ravens": "Baltimore Ravens",
+      baltimore: "Baltimore Ravens",
+
+      // Kansas City Chiefs variations
+      kc: "Kansas City Chiefs",
+      chiefs: "Kansas City Chiefs",
+      "kansas city chiefs": "Kansas City Chiefs",
+      "kansas city": "Kansas City Chiefs",
+
+      // Philadelphia Eagles variations
+      phi: "Philadelphia Eagles",
+      eagles: "Philadelphia Eagles",
+      "philadelphia eagles": "Philadelphia Eagles",
+      philadelphia: "Philadelphia Eagles",
+
+      // Dallas Cowboys variations
+      dal: "Dallas Cowboys",
+      cowboys: "Dallas Cowboys",
+      "dallas cowboys": "Dallas Cowboys",
+      dallas: "Dallas Cowboys",
+
+      // New England Patriots variations
+      ne: "New England Patriots",
+      patriots: "New England Patriots",
+      "new england patriots": "New England Patriots",
+      "new england": "New England Patriots",
+
+      // Pittsburgh Steelers variations
+      pit: "Pittsburgh Steelers",
+      steelers: "Pittsburgh Steelers",
+      "pittsburgh steelers": "Pittsburgh Steelers",
+      pittsburgh: "Pittsburgh Steelers",
+
+      // Green Bay Packers variations
+      gb: "Green Bay Packers",
+      packers: "Green Bay Packers",
+      "green bay packers": "Green Bay Packers",
+      "green bay": "Green Bay Packers",
+
+      // Minnesota Vikings variations
+      min: "Minnesota Vikings",
+      vikings: "Minnesota Vikings",
+      "minnesota vikings": "Minnesota Vikings",
+      minnesota: "Minnesota Vikings",
+
+      // Detroit Lions variations
+      det: "Detroit Lions",
+      lions: "Detroit Lions",
+      "detroit lions": "Detroit Lions",
+      detroit: "Detroit Lions",
+
+      // Atlanta Falcons variations
+      atl: "Atlanta Falcons",
+      falcons: "Atlanta Falcons",
+      "atlanta falcons": "Atlanta Falcons",
+      atlanta: "Atlanta Falcons",
+
+      // New Orleans Saints variations
+      no: "New Orleans Saints",
+      saints: "New Orleans Saints",
+      "new orleans saints": "New Orleans Saints",
+      "new orleans": "New Orleans Saints",
+
+      // Tampa Bay Buccaneers variations
+      tb: "Tampa Bay Buccaneers",
+      buccaneers: "Tampa Bay Buccaneers",
+      "tampa bay buccaneers": "Tampa Bay Buccaneers",
+      "tampa bay": "Tampa Bay Buccaneers",
+      tampa: "Tampa Bay Buccaneers",
+
+      // Arizona Cardinals variations
+      ari: "Arizona Cardinals",
+      cardinals: "Arizona Cardinals",
+      "arizona cardinals": "Arizona Cardinals",
+      arizona: "Arizona Cardinals",
+
+      // Los Angeles Rams variations
+      lar: "Los Angeles Rams",
+      rams: "Los Angeles Rams",
+      "los angeles rams": "Los Angeles Rams",
+      "los angeles": "Los Angeles Rams",
+
+      // San Francisco 49ers variations
+      sf: "San Francisco 49ers",
+      "49ers": "San Francisco 49ers",
+      "san francisco 49ers": "San Francisco 49ers",
+      "san francisco": "San Francisco 49ers",
+
+      // Seattle Seahawks variations
+      sea: "Seattle Seahawks",
+      seahawks: "Seattle Seahawks",
+      "seattle seahawks": "Seattle Seahawks",
+      seattle: "Seattle Seahawks",
+
+      // New York Giants variations
+      nyg: "New York Giants",
+      giants: "New York Giants",
+      "new york giants": "New York Giants",
+
+      // New York Jets variations
+      nyj: "New York Jets",
+      jets: "New York Jets",
+      "new york jets": "New York Jets",
+
+      // Washington Commanders variations
+      was: "Washington Commanders",
+      commanders: "Washington Commanders",
+      "washington commanders": "Washington Commanders",
+      washington: "Washington Commanders",
+
+      // Cincinnati Bengals variations
+      cin: "Cincinnati Bengals",
+      bengals: "Cincinnati Bengals",
+      "cincinnati bengals": "Cincinnati Bengals",
+      cincinnati: "Cincinnati Bengals",
+
+      // Cleveland Browns variations
+      cle: "Cleveland Browns",
+      browns: "Cleveland Browns",
+      "cleveland browns": "Cleveland Browns",
+      cleveland: "Cleveland Browns",
+
+      // Houston Texans variations
+      hou: "Houston Texans",
+      texans: "Houston Texans",
+      "houston texans": "Houston Texans",
+      houston: "Houston Texans",
+
+      // Indianapolis Colts variations
+      ind: "Indianapolis Colts",
+      colts: "Indianapolis Colts",
+      "indianapolis colts": "Indianapolis Colts",
+      indianapolis: "Indianapolis Colts",
+
+      // Jacksonville Jaguars variations
+      jax: "Jacksonville Jaguars",
+      jaguars: "Jacksonville Jaguars",
+      "jacksonville jaguars": "Jacksonville Jaguars",
+      jacksonville: "Jacksonville Jaguars",
+
+      // Tennessee Titans variations
+      ten: "Tennessee Titans",
+      titans: "Tennessee Titans",
+      "tennessee titans": "Tennessee Titans",
+      tennessee: "Tennessee Titans",
+
+      // Denver Broncos variations
+      den: "Denver Broncos",
+      broncos: "Denver Broncos",
+      "denver broncos": "Denver Broncos",
+      denver: "Denver Broncos",
+
+      // Las Vegas Raiders variations
+      lv: "Las Vegas Raiders",
+      raiders: "Las Vegas Raiders",
+      "las vegas raiders": "Las Vegas Raiders",
+      "las vegas": "Las Vegas Raiders",
+
+      // Los Angeles Chargers variations
+      lac: "Los Angeles Chargers",
+      chargers: "Los Angeles Chargers",
+      "los angeles chargers": "Los Angeles Chargers",
+
+      // Miami Dolphins variations
+      mia: "Miami Dolphins",
+      dolphins: "Miami Dolphins",
+      "miami dolphins": "Miami Dolphins",
+      miami: "Miami Dolphins",
+    };
+
+    const normalized = name.toLowerCase().trim();
+    return teamMap[normalized] || name;
+  };
+
   const [domeSport, setDomeSport] = useState("nfl");
   const [domeDate, setDomeDate] = useState<string>(
     new Date().toISOString().split("T")[0]
@@ -677,8 +876,11 @@ export default function MarketAggregatorDashboard() {
                                         Polymarket
                                       </td>
                                       <td className="py-2 pr-6">
-                                        {game.polymarket.outcomes[0]?.name ??
-                                          "-"}
+                                        {game.polymarket.outcomes[0]
+                                          ? normalizeTeamName(
+                                              game.polymarket.outcomes[0].name
+                                            )
+                                          : "-"}
                                       </td>
                                       <td className="py-2 pr-6">
                                         {game.polymarket.outcomes[0]
@@ -687,8 +889,11 @@ export default function MarketAggregatorDashboard() {
                                           : "-"}
                                       </td>
                                       <td className="py-2 pr-6">
-                                        {game.polymarket.outcomes[1]?.name ??
-                                          "-"}
+                                        {game.polymarket.outcomes[1]
+                                          ? normalizeTeamName(
+                                              game.polymarket.outcomes[1].name
+                                            )
+                                          : "-"}
                                       </td>
                                       <td className="py-2 pr-6">
                                         {game.polymarket.outcomes[1]
@@ -706,7 +911,7 @@ export default function MarketAggregatorDashboard() {
                                         Kalshi
                                       </td>
                                       <td className="py-2 pr-6">
-                                        {game.kalshi.outcomes[0]?.name ?? "-"}
+                                        {normalizeTeamName(game.teams.team1)}
                                       </td>
                                       <td className="py-2 pr-6">
                                         {game.kalshi.outcomes[0]
@@ -715,7 +920,7 @@ export default function MarketAggregatorDashboard() {
                                           : "-"}
                                       </td>
                                       <td className="py-2 pr-6">
-                                        {game.kalshi.outcomes[1]?.name ?? "-"}
+                                        {normalizeTeamName(game.teams.team2)}
                                       </td>
                                       <td className="py-2 pr-6">
                                         {game.kalshi.outcomes[1]
@@ -749,7 +954,9 @@ export default function MarketAggregatorDashboard() {
                                               {line.affiliate_name}
                                             </td>
                                             <td className="py-2 pr-6">
-                                              {game.teams.team1}
+                                              {normalizeTeamName(
+                                                game.teams.team1
+                                              )}
                                             </td>
                                             <td className="py-2 pr-6">
                                               {line.moneyline_away > 0
@@ -757,7 +964,9 @@ export default function MarketAggregatorDashboard() {
                                                 : line.moneyline_away}
                                             </td>
                                             <td className="py-2 pr-6">
-                                              {game.teams.team2}
+                                              {normalizeTeamName(
+                                                game.teams.team2
+                                              )}
                                             </td>
                                             <td className="py-2 pr-6">
                                               {line.moneyline_home > 0
@@ -777,28 +986,8 @@ export default function MarketAggregatorDashboard() {
                               {getVisibilityFor(idx).polymarket &&
                                 game.polymarket && (
                                   <div className="min-w-[260px] bg-[#111] border border-gray-800 rounded-lg p-4">
-                                    <div className="text-blue-400 font-semibold mb-2">
+                                    <div className="text-blue-400 font-semibold mb-4">
                                       Polymarket
-                                    </div>
-                                    <div className="mb-3">
-                                      <div className="text-[11px] text-gray-400 mb-1">
-                                        Liquidity
-                                      </div>
-                                      <div className="text-white font-semibold text-sm">
-                                        ${game.polymarket.liquidity}
-                                      </div>
-                                    </div>
-                                    <div className="mb-3">
-                                      <div className="text-[11px] text-gray-400 mb-1">
-                                        Volume
-                                      </div>
-                                      <div className="text-white font-semibold text-sm">
-                                        $
-                                        {typeof game.polymarket.volume ===
-                                        "string"
-                                          ? game.polymarket.volume
-                                          : game.polymarket.volume}
-                                      </div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
                                       {game.polymarket.outcomes.map(
@@ -813,7 +1002,7 @@ export default function MarketAggregatorDashboard() {
                                                 : "bg-red-600 hover:bg-red-700"
                                             } text-white transition-colors`}
                                           >
-                                            {outcome.name} (
+                                            {normalizeTeamName(outcome.name)} (
                                             {outcome.american_odds})
                                           </button>
                                         )
@@ -823,43 +1012,22 @@ export default function MarketAggregatorDashboard() {
                                 )}
                               {getVisibilityFor(idx).kalshi && game.kalshi && (
                                 <div className="min-w-[260px] bg-[#111] border border-gray-800 rounded-lg p-4">
-                                  <div className="text-green-400 font-semibold mb-2">
+                                  <div className="text-green-400 font-semibold mb-4">
                                     Kalshi
                                   </div>
-                                  <div className="mb-3">
-                                    <div className="text-[11px] text-gray-400 mb-1">
-                                      Liquidity
-                                    </div>
-                                    <div className="text-white font-semibold text-sm">
-                                      ${game.kalshi.liquidity}
-                                    </div>
-                                  </div>
-                                  <div className="mb-3">
-                                    <div className="text-[11px] text-gray-400 mb-1">
-                                      Volume
-                                    </div>
-                                    <div className="text-white font-semibold text-sm">
-                                      $
-                                      {typeof game.kalshi.volume === "string"
-                                        ? game.kalshi.volume
-                                        : game.kalshi.volume}
-                                    </div>
-                                  </div>
                                   <div className="grid grid-cols-2 gap-2">
-                                    {game.kalshi.outcomes.map((outcome, i) => (
-                                      <button
-                                        key={i}
-                                        className={`py-3 px-4 rounded-lg font-semibold text-sm ${
-                                          outcome.name
-                                            .toLowerCase()
-                                            .includes("yes")
-                                            ? "bg-green-600 hover:bg-green-700"
-                                            : "bg-red-600 hover:bg-red-700"
-                                        } text-white transition-colors`}
-                                      >
-                                        {outcome.name} ({outcome.american_odds})
-                                      </button>
-                                    ))}
+                                    <button
+                                      className={`py-3 px-4 rounded-lg font-semibold text-sm bg-green-600 hover:bg-green-700 text-white transition-colors`}
+                                    >
+                                      {normalizeTeamName(game.teams.team1)} (
+                                      {game.kalshi.outcomes[0]?.american_odds})
+                                    </button>
+                                    <button
+                                      className={`py-3 px-4 rounded-lg font-semibold text-sm bg-red-600 hover:bg-red-700 text-white transition-colors`}
+                                    >
+                                      {normalizeTeamName(game.teams.team2)} (
+                                      {game.kalshi.outcomes[1]?.american_odds})
+                                    </button>
                                   </div>
                                 </div>
                               )}
@@ -880,19 +1048,25 @@ export default function MarketAggregatorDashboard() {
                                           key={i}
                                           className="min-w-[260px] bg-[#111] border border-gray-800 rounded-lg p-4"
                                         >
-                                          <div className="text-yellow-400 font-semibold mb-2">
+                                          <div className="text-yellow-400 font-semibold mb-4">
                                             {line.affiliate_name}
                                           </div>
                                           <div className="grid grid-cols-2 gap-2">
-                                            <button className="py-3 px-4 rounded-lg font-semibold text-sm bg-gray-700 hover:bg-gray-600 text-white transition-colors">
-                                              {game.teams.team1} (
+                                            <button className="py-3 px-4 rounded-lg font-semibold text-sm bg-green-600 hover:bg-green-700 text-white transition-colors">
+                                              {normalizeTeamName(
+                                                game.teams.team1
+                                              )}{" "}
+                                              (
                                               {line.moneyline_away > 0
                                                 ? `+${line.moneyline_away}`
                                                 : line.moneyline_away}
                                               )
                                             </button>
-                                            <button className="py-3 px-4 rounded-lg font-semibold text-sm bg-gray-700 hover:bg-gray-600 text-white transition-colors">
-                                              {game.teams.team2} (
+                                            <button className="py-3 px-4 rounded-lg font-semibold text-sm bg-red-600 hover:bg-red-700 text-white transition-colors">
+                                              {normalizeTeamName(
+                                                game.teams.team2
+                                              )}{" "}
+                                              (
                                               {line.moneyline_home > 0
                                                 ? `+${line.moneyline_home}`
                                                 : line.moneyline_home}
