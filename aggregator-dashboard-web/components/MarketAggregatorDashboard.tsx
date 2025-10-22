@@ -1064,27 +1064,34 @@ export default function MarketAggregatorDashboard() {
                                     </div>
                                   </div>
                                 )}
-                              {getVisibilityFor(idx).kalshi && game.kalshi && (
-                                <div className="min-w-[260px] bg-[#111] border border-gray-800 rounded-lg p-4">
-                                  <div className="text-green-400 font-semibold mb-4">
-                                    Kalshi
+                              {getVisibilityFor(idx).kalshi && game.kalshi && (() => {
+                                const kalshiOdds = getKalshiOddsForTeams(
+                                  game.kalshi,
+                                  normalizeTeamName(game.teams.team1),
+                                  normalizeTeamName(game.teams.team2)
+                                );
+                                return (
+                                  <div className="min-w-[260px] bg-[#111] border border-gray-800 rounded-lg p-4">
+                                    <div className="text-green-400 font-semibold mb-4">
+                                      Kalshi
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <button
+                                        className={`py-3 px-4 rounded-lg font-semibold text-sm bg-green-600 hover:bg-green-700 text-white transition-colors`}
+                                      >
+                                        {normalizeTeamName(game.teams.team1)} (
+                                        {kalshiOdds.team1Odds})
+                                      </button>
+                                      <button
+                                        className={`py-3 px-4 rounded-lg font-semibold text-sm bg-red-600 hover:bg-red-700 text-white transition-colors`}
+                                      >
+                                        {normalizeTeamName(game.teams.team2)} (
+                                        {kalshiOdds.team2Odds})
+                                      </button>
+                                    </div>
                                   </div>
-                                  <div className="grid grid-cols-2 gap-2">
-                                    <button
-                                      className={`py-3 px-4 rounded-lg font-semibold text-sm bg-green-600 hover:bg-green-700 text-white transition-colors`}
-                                    >
-                                      {normalizeTeamName(game.teams.team1)} (
-                                      {game.kalshi.outcomes[0]?.american_odds})
-                                    </button>
-                                    <button
-                                      className={`py-3 px-4 rounded-lg font-semibold text-sm bg-red-600 hover:bg-red-700 text-white transition-colors`}
-                                    >
-                                      {normalizeTeamName(game.teams.team2)} (
-                                      {game.kalshi.outcomes[1]?.american_odds})
-                                    </button>
-                                  </div>
-                                </div>
-                              )}
+                                );
+                              })()}
                               {getVisibilityFor(idx).sportsbooks &&
                                 game.traditional_odds &&
                                 game.traditional_odds.length > 0 && (
