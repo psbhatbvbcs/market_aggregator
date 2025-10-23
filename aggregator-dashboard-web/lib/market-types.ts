@@ -214,3 +214,33 @@ export interface CombinedNFLResponse {
   timestamp: string;
 }
 
+export interface OrderbookOrder {
+	size: string
+	price: string
+}
+
+export interface OrderbookSnapshot {
+	asks: OrderbookOrder[]
+	hash: string
+	minOrderSize: string
+	negRisk: boolean
+	assetId: string
+	timestamp: number
+	tickSize: string
+	bids: OrderbookOrder[]
+	indexedAt: number
+	market: string
+}
+
+export interface OrderbookPagination {
+	limit: number
+	count: number
+	paginationKey: string
+	has_more: boolean
+}
+
+export interface OrderbookResponse {
+	snapshots: OrderbookSnapshot[]
+	pagination: OrderbookPagination
+}
+
