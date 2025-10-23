@@ -12,6 +12,8 @@ import {
 	PoliticsResponse,
 	CryptoResponse,
 	RundownResponse,
+	RundownEvent,
+	TraditionalOddsLine,
 	DomeResponse,
 	OthersResponse,
 	OthersComparison,
@@ -123,11 +125,23 @@ export default function MarketAggregatorDashboard() {
 	// Orderbook History State
 	const [orderbook, setOrderbook] = useState<OrderbookResponse | null>(null)
 	const [orderbookLoading, setOrderbookLoading] = useState(false)
+
+	// Helper function to convert datetime-local to milliseconds
+	const getDefaultStartTime = () => {
+		const date = new Date(Date.now() - 86400000) // 24 hours ago
+		return date.toISOString().slice(0, 16) // Format: YYYY-MM-DDTHH:mm
+	}
+
+	const getDefaultEndTime = () => {
+		const date = new Date()
+		return date.toISOString().slice(0, 16) // Format: YYYY-MM-DDTHH:mm
+	}
+
 	const [orderbookParams, setOrderbookParams] = useState({
 		limit: '1',
 		token_id: '56369772478534954338683665819559528414197495274302917800610633957542171787417',
-		end_time: String(Date.now()),
-		start_time: String(Date.now() - 86400000), // 24 hours ago
+		end_time: getDefaultEndTime(),
+		start_time: getDefaultStartTime(),
 	})
 
 	// Fetch NFL Crypto Markets
@@ -334,7 +348,18 @@ export default function MarketAggregatorDashboard() {
 		setOrderbook(null)
 
 		try {
-			const queryString = new URLSearchParams(orderbookParams).toString()
+			// Convert datetime-local strings to Unix milliseconds
+			const startTimeMs = new Date(orderbookParams.start_time).getTime().toString()
+			const endTimeMs = new Date(orderbookParams.end_time).getTime().toString()
+
+			const params = {
+				limit: orderbookParams.limit,
+				token_id: orderbookParams.token_id,
+				start_time: startTimeMs,
+				end_time: endTimeMs,
+			}
+
+			const queryString = new URLSearchParams(params).toString()
 			const response = await fetch(
 				`https://api.domeapi.io/v1/polymarket/orderbooks?${queryString}`
 			)
@@ -1363,7 +1388,7 @@ export default function MarketAggregatorDashboard() {
 								{/* Events */}
 								{rundown.events && rundown.events.length > 0 ? (
 									<div className='space-y-4'>
-										{rundown.events.map((event) => (
+										{rundown.events.map((event: RundownEvent) => (
 											<div
 												key={event.event_id}
 												className='bg-[#1a1a1a] rounded-lg p-6 border border-gray-800'
@@ -1384,24 +1409,26 @@ export default function MarketAggregatorDashboard() {
 															{event.home_team}
 														</span>
 													</div>
-													{event.lines.map((line) => (
-														<div
-															key={line.affiliate_name}
-															className='grid grid-cols-3 text-sm border-t border-gray-800 pt-2'
-														>
-															<span>{line.affiliate_name}</span>
-															<span className='text-right'>
-																{line.moneyline_away > 0
-																	? `+${line.moneyline_away}`
-																	: line.moneyline_away}
-															</span>
-															<span className='text-right'>
-																{line.moneyline_home > 0
-																	? `+${line.moneyline_home}`
-																	: line.moneyline_home}
-															</span>
-														</div>
-													))}
+													{event.lines.map(
+														(line: TraditionalOddsLine) => (
+															<div
+																key={line.affiliate_name}
+																className='grid grid-cols-3 text-sm border-t border-gray-800 pt-2'
+															>
+																<span>{line.affiliate_name}</span>
+																<span className='text-right'>
+																	{line.moneyline_away > 0
+																		? `+${line.moneyline_away}`
+																		: line.moneyline_away}
+																</span>
+																<span className='text-right'>
+																	{line.moneyline_home > 0
+																		? `+${line.moneyline_home}`
+																		: line.moneyline_home}
+																</span>
+															</div>
+														)
+													)}
 												</div>
 											</div>
 										))}
@@ -1472,10 +1499,10 @@ export default function MarketAggregatorDashboard() {
 											htmlFor='start-time'
 											className='block text-sm font-medium text-gray-300 mb-2'
 										>
-											Start Time (milliseconds):
+											Start Time:
 										</label>
 										<input
-											type='text'
+											type='datetime-local'
 											id='start-time'
 											value={orderbookParams.start_time}
 											onChange={(e) =>
@@ -1493,10 +1520,10 @@ export default function MarketAggregatorDashboard() {
 											htmlFor='end-time'
 											className='block text-sm font-medium text-gray-300 mb-2'
 										>
-											End Time (milliseconds):
+											End Time:
 										</label>
 										<input
-											type='text'
+											type='datetime-local'
 											id='end-time'
 											value={orderbookParams.end_time}
 											onChange={(e) =>

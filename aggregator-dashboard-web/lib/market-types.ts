@@ -142,6 +142,24 @@ export interface TraditionalOddsLine {
   moneyline_away: number;
 }
 
+export interface RundownEvent {
+	event_id: string
+	sport_id: number
+	event_date: string
+	home_team: string
+	away_team: string
+	lines: TraditionalOddsLine[]
+}
+
+export interface RundownResponse {
+	events: RundownEvent[]
+	summary: {
+		total_events: number
+		total_bookmakers: number
+	}
+	timestamp: string
+}
+
 export interface DomeComparison {
   title: string;
   price_spread: number;
