@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import ComparisonGroup from './ComparisonGroup'
 import CryptoComparisonGroup from './CryptoComparisonGroup'
 import TraditionalOddsCard from './TraditionalOddsCard'
+import ArbitrageTracker from "./ArbitrageTracker";
 import {
 	CryptoMarketsResponse,
 	TraditionalOddsResponse,
@@ -543,13 +544,19 @@ export default function MarketAggregatorDashboard() {
 							>
 								Rundown
 							</TabsTrigger>
-							<TabsTrigger
-								value='others'
-								className='data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none bg-transparent text-gray-400 border-0 px-0 pb-2 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-white hover:text-gray-200'
-							>
-								Others
-							</TabsTrigger>
-							<TabsTrigger
+						<TabsTrigger
+							value='others'
+							className='data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none bg-transparent text-gray-400 border-0 px-0 pb-2 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-white hover:text-gray-200'
+						>
+							Others
+						</TabsTrigger>
+						<TabsTrigger
+							value='arbitrage'
+							className='data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none bg-transparent text-gray-400 border-0 px-0 pb-2 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-white hover:text-gray-200'
+						>
+							Arbitrage Tracker
+						</TabsTrigger>
+						<TabsTrigger
 								value='orderbook'
 								className='data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none bg-transparent text-gray-400 border-0 px-0 pb-2 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-white hover:text-gray-200'
 							>
@@ -1401,6 +1408,11 @@ export default function MarketAggregatorDashboard() {
 								</div>
 							</>
 						)}
+					</TabsContent>
+
+					{/* Arbitrage Tracker Tab */}
+					<TabsContent value='arbitrage' className='space-y-4'>
+						<ArbitrageTracker />
 					</TabsContent>
 
 					{/* Crypto Tab */}

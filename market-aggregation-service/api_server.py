@@ -7,7 +7,7 @@ Provides real-time market comparison data from multiple platforms:
 - Politics: Polymarket + Kalshi comparisons
 """
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime, timedelta, timezone, date
 from typing import List, Dict, Any, Optional
@@ -19,6 +19,10 @@ import asyncio
 import time
 import requests
 import signal
+import subprocess
+import json
+import uuid
+from pathlib import Path
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -31,6 +35,16 @@ from api_clients.dome_client import DomeAPIClient
 from aggregator import MarketAggregator
 from market_mappings import MANUAL_MAPPINGS
 from nfl_teams import normalize_nfl_team_name
+
+# Import market finder for arbitrage tracking
+try:
+    sys.path.insert(0, str(Path(__file__).parent.parent / 'prediction-arbs-main'))
+    from bot import UniversalMarketFinder
+    BOT_AVAILABLE = True
+except Exception as e:
+    print(f"⚠️  Bot module not available: {e}")
+    UniversalMarketFinder = None
+    BOT_AVAILABLE = False
 
 # Read configuration
 config = configparser.ConfigParser()
@@ -73,6 +87,18 @@ _politics_cache_lock = asyncio.Lock()
 _crypto_cache_payload: Optional[Dict[str, Any]] = None
 _crypto_cache_ts: float = 0.0
 _crypto_cache_lock = asyncio.Lock()
+
+# Active tracking sessions
+active_trackers: Dict[str, Dict[str, Any]] = {}
+tracker_lock = asyncio.Lock()
+
+# WebSocket connections for live price updates
+active_websockets: Dict[str, List[WebSocket]] = {}
+websocket_lock = asyncio.Lock()
+
+# Arbitrage execution notifications
+arbitrage_notifications: Dict[str, List[Dict[str, Any]]] = {}
+arb_lock = asyncio.Lock()
 
 
 def filter_future_markets(markets):
@@ -1134,6 +1160,338 @@ async def get_others_matched_markets(limit: int = Query(10, ge=1, le=100), offse
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ===================== Game Tracking & Arbitrage =====================
+
+@app.post("/arbitrage/search-game")
+async def search_game(
+    team1: str = Query(..., description="Home team name"),
+    team2: str = Query(..., description="Away team name"),
+    league: str = Query(..., description="League (NFL, EPL, etc.)"),
+    date: Optional[str] = Query(None, description="Game date (YYYY-MM-DD)")
+):
+    """
+    Search for a game across Polymarket and Kalshi to check availability
+    """
+    try:
+        if not BOT_AVAILABLE or UniversalMarketFinder is None:
+            raise HTTPException(status_code=503, detail="Bot module not available. Check server logs.")
+        
+        finder = UniversalMarketFinder()
+        
+        # Parse date if provided
+        game_date = None
+        if date:
+            try:
+                game_date = datetime.strptime(date, "%Y-%m-%d")
+            except:
+                raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+        
+        # Check if league is supported
+        league_lower = league.lower()
+        if league_lower not in finder.league_mappings:
+            return {
+                "found": False,
+                "error": f"League '{league}' not supported",
+                "supported_leagues": list(finder.league_mappings.keys())
+            }
+        
+        has_tie = finder.league_mappings[league_lower]['has_tie']
+        
+        # Search Kalshi
+        kalshi_markets = finder.find_kalshi_markets(team1, team2, league, game_date)
+        
+        # Search Polymarket
+        polymarket_markets = finder.find_polymarket_markets(team1, team2, league, game_date)
+        
+        # Check if found on both
+        kalshi_found = kalshi_markets and kalshi_markets.get('found', False)
+        polymarket_found = polymarket_markets and polymarket_markets.get('found', False)
+        
+        if not kalshi_found and not polymarket_found:
+            return {
+                "found": False,
+                "kalshi": {"found": False},
+                "polymarket": {"found": False},
+                "message": "Game not found on either exchange"
+            }
+        
+        return {
+            "found": True,
+            "team1": team1,
+            "team2": team2,
+            "league": league,
+            "date": date,
+            "has_tie": has_tie,
+            "kalshi": {
+                "found": kalshi_found,
+                "markets": kalshi_markets.get('markets', {}) if kalshi_found else {},
+                "metadata": kalshi_markets.get('metadata', {}) if kalshi_found else {}
+            },
+            "polymarket": {
+                "found": polymarket_found,
+                "markets": polymarket_markets.get('markets', {}) if polymarket_found else {},
+                "metadata": polymarket_markets.get('metadata', {}) if polymarket_found else {}
+            },
+            "trackable": kalshi_found and polymarket_found
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/arbitrage/start-tracking")
+async def start_tracking(
+    team1: str = Query(..., description="Home team name"),
+    team2: str = Query(..., description="Away team name"),
+    league: str = Query(..., description="League"),
+    date: Optional[str] = Query(None, description="Game date (YYYY-MM-DD)")
+):
+    """
+    Start tracking a game for arbitrage opportunities
+    Spawns a bot.py process and returns tracking ID
+    """
+    try:
+        tracking_id = str(uuid.uuid4())[:8]
+        
+        async with tracker_lock:
+            # Check if already tracking this game
+            game_key = f"{team1}_{team2}_{league}_{date}".lower().replace(" ", "_")
+            for tid, tracker_info in active_trackers.items():
+                if tracker_info.get('game_key') == game_key:
+                    return {
+                        "tracking_id": tid,
+                        "status": "already_tracking",
+                        "message": "This game is already being tracked"
+                    }
+            
+            # Start bot process
+            bot_script = Path(__file__).parent.parent / "prediction-arbs-main" / "bot_runner.py"
+            log_file = Path(__file__).parent.parent / "prediction-arbs-main" / f"bot_{tracking_id}.log"
+            
+            # Create command
+            cmd = [
+                sys.executable,
+                str(bot_script),
+                "--team1", team1,
+                "--team2", team2,
+                "--league", league,
+                "--tracking-id", tracking_id,
+                "--webhook", f"http://localhost:8000/arbitrage/webhook/{tracking_id}"
+            ]
+            if date:
+                cmd.extend(["--date", date])
+            
+            # Start process
+            process = subprocess.Popen(
+                cmd,
+                stdout=open(log_file, 'w'),
+                stderr=subprocess.STDOUT,
+                cwd=str(Path(__file__).parent.parent / "prediction-arbs-main")
+            )
+            
+            # Store tracking info
+            active_trackers[tracking_id] = {
+                "tracking_id": tracking_id,
+                "game_key": game_key,
+                "team1": team1,
+                "team2": team2,
+                "league": league,
+                "date": date,
+                "process": process,
+                "log_file": str(log_file),
+                "started_at": datetime.now().isoformat(),
+                "status": "running"
+            }
+            
+            # Initialize arbitrage notifications list
+            async with arb_lock:
+                arbitrage_notifications[tracking_id] = []
+        
+        return {
+            "tracking_id": tracking_id,
+            "status": "started",
+            "team1": team1,
+            "team2": team2,
+            "league": league,
+            "date": date,
+            "message": "Tracking started successfully"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/arbitrage/stop-tracking/{tracking_id}")
+async def stop_tracking(tracking_id: str):
+    """Stop tracking a game"""
+    try:
+        async with tracker_lock:
+            if tracking_id not in active_trackers:
+                raise HTTPException(status_code=404, detail="Tracking ID not found")
+            
+            tracker_info = active_trackers[tracking_id]
+            process = tracker_info.get('process')
+            
+            if process and process.poll() is None:
+                process.terminate()
+                try:
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+            
+            tracker_info['status'] = 'stopped'
+            tracker_info['stopped_at'] = datetime.now().isoformat()
+        
+        return {
+            "tracking_id": tracking_id,
+            "status": "stopped",
+            "message": "Tracking stopped successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/arbitrage/tracking-status")
+async def get_tracking_status():
+    """Get status of all active tracking sessions"""
+    async with tracker_lock:
+        active_sessions = []
+        for tid, info in active_trackers.items():
+            process = info.get('process')
+            is_running = process and process.poll() is None
+            
+            session = {
+                "tracking_id": tid,
+                "team1": info.get('team1'),
+                "team2": info.get('team2'),
+                "league": info.get('league'),
+                "date": info.get('date'),
+                "started_at": info.get('started_at'),
+                "status": "running" if is_running else "stopped"
+            }
+            active_sessions.append(session)
+        
+        return {
+            "active_sessions": active_sessions,
+            "total_active": sum(1 for s in active_sessions if s['status'] == 'running')
+        }
+
+
+@app.get("/arbitrage/notifications/{tracking_id}")
+async def get_arbitrage_notifications(tracking_id: str):
+    """Get arbitrage execution notifications for a tracking session"""
+    async with arb_lock:
+        if tracking_id not in arbitrage_notifications:
+            return {"tracking_id": tracking_id, "notifications": []}
+        
+        return {
+            "tracking_id": tracking_id,
+            "notifications": arbitrage_notifications[tracking_id]
+        }
+
+
+@app.post("/arbitrage/webhook/{tracking_id}")
+async def arbitrage_webhook(tracking_id: str, notification: Dict[str, Any]):
+    """
+    Webhook endpoint for bot.py to send arbitrage execution details
+    """
+    try:
+        async with arb_lock:
+            if tracking_id not in arbitrage_notifications:
+                arbitrage_notifications[tracking_id] = []
+            
+            # Add timestamp if not present
+            if 'timestamp' not in notification:
+                notification['timestamp'] = datetime.now().isoformat()
+            
+            arbitrage_notifications[tracking_id].append(notification)
+        
+        # Broadcast to WebSocket clients
+        async with websocket_lock:
+            if tracking_id in active_websockets:
+                for ws in active_websockets[tracking_id]:
+                    try:
+                        await ws.send_json({
+                            "type": "arbitrage_execution",
+                            "data": notification
+                        })
+                    except:
+                        pass
+        
+        return {"status": "received", "tracking_id": tracking_id}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.websocket("/ws/tracking/{tracking_id}")
+async def websocket_tracking(websocket: WebSocket, tracking_id: str):
+    """
+    WebSocket endpoint for live price updates
+    The bot will stream prices through this connection
+    """
+    await websocket.accept()
+    
+    # Register connection
+    async with websocket_lock:
+        if tracking_id not in active_websockets:
+            active_websockets[tracking_id] = []
+        active_websockets[tracking_id].append(websocket)
+    
+    try:
+        await websocket.send_json({
+            "type": "connected",
+            "tracking_id": tracking_id,
+            "message": "Connected to live price stream"
+        })
+        
+        # Keep connection alive and handle incoming messages
+        while True:
+            try:
+                data = await websocket.receive_text()
+                # Echo back or handle client messages if needed
+                await websocket.send_json({"type": "pong"})
+            except WebSocketDisconnect:
+                break
+            
+    except Exception as e:
+        print(f"WebSocket error: {e}")
+    finally:
+        # Unregister connection
+        async with websocket_lock:
+            if tracking_id in active_websockets:
+                if websocket in active_websockets[tracking_id]:
+                    active_websockets[tracking_id].remove(websocket)
+                if not active_websockets[tracking_id]:
+                    del active_websockets[tracking_id]
+
+
+# Add endpoint to broadcast price updates (called by bot)
+@app.post("/arbitrage/broadcast-prices/{tracking_id}")
+async def broadcast_prices(tracking_id: str, prices: Dict[str, Any]):
+    """Broadcast price updates to connected WebSocket clients"""
+    async with websocket_lock:
+        if tracking_id in active_websockets:
+            disconnected = []
+            for ws in active_websockets[tracking_id]:
+                try:
+                    await ws.send_json({
+                        "type": "price_update",
+                        "data": prices
+                    })
+                except:
+                    disconnected.append(ws)
+            
+            # Remove disconnected clients
+            for ws in disconnected:
+                active_websockets[tracking_id].remove(ws)
+    
+    return {"status": "broadcasted", "clients": len(active_websockets.get(tracking_id, []))}
 
 
 if __name__ == "__main__":
