@@ -129,7 +129,9 @@ async def root():
             "/nfl/traditional": "NFL odds from traditional sportsbooks",
             "/politics": "Politics markets from Polymarket + Kalshi",
             "/crypto": "Crypto markets across Polymarket/Kalshi/Limitless",
-            "/others": "Externally matched Polymarket + Kalshi markets"
+            "/others": "Externally matched Polymarket + Kalshi markets",
+            "/kalshi/orderbook/{ticker}": "Get Kalshi market orderbook by ticker",
+            "/limitless/orderbook/{slug}": "Get Limitless market orderbook by slug"
         }
     }
 
@@ -962,6 +964,53 @@ async def get_nfl_combined_markets(sport: str = "nfl", date: Optional[str] = Non
 
 
 # ===================== Others (external matched markets) =====================
+@app.get("/kalshi/orderbook/{ticker}")
+async def get_kalshi_orderbook(ticker: str):
+    """
+    Get orderbook for a specific Kalshi market ticker
+    """
+    try:
+        orderbook_data = kalshi_client.fetch_market_orderbook(ticker)
+        
+        if not orderbook_data:
+            raise HTTPException(status_code=404, detail=f"Orderbook not found for ticker: {ticker}")
+        
+        return {
+            "ticker": ticker,
+            "orderbook": orderbook_data.get("orderbook", {}),
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/limitless/orderbook/{slug}")
+async def get_limitless_orderbook(slug: str):
+    """
+    Get orderbook for a specific Limitless market slug
+    """
+    try:
+        url = f"https://api.limitless.exchange/markets/{slug}/orderbook"
+        response = await asyncio.to_thread(requests.get, url, timeout=10)
+        
+        if response.status_code == 404:
+            raise HTTPException(status_code=404, detail=f"Market not found: {slug}")
+        
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail="Failed to fetch Limitless orderbook")
+        
+        data = response.json()
+        return data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/others")
 async def get_others_matched_markets(limit: int = Query(10, ge=1, le=100), offset: int = Query(0, ge=0)):
     """

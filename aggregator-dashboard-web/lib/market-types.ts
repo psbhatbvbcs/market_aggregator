@@ -262,3 +262,39 @@ export interface OrderbookResponse {
 	pagination: OrderbookPagination
 }
 
+// Kalshi Orderbook Types
+export interface KalshiOrderbookLevel {
+	price: number;
+	quantity: number;
+	count?: number;
+}
+
+export interface KalshiOrderbook {
+	yes: number[][];
+	no: number[][];
+	yes_dollars?: any[][];
+	no_dollars?: any[][];
+}
+
+export interface KalshiOrderbookResponse {
+	ticker: string;
+	orderbook: KalshiOrderbook;
+	timestamp: string;
+}
+
+// Limitless Orderbook Types
+export interface LimitlessOrderbookLevel {
+	price: number;
+	size: number;
+}
+
+export interface LimitlessOrderbookResponse {
+	adjustedMidpoint: number;
+	asks: LimitlessOrderbookLevel[];
+	bids: LimitlessOrderbookLevel[];
+	lastTradePrice: number;
+	maxSpread: number;
+	minSize: number;
+	tokenId: string;
+}
+

@@ -1,11 +1,11 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import ComparisonGroup from "./ComparisonGroup";
-import CryptoComparisonGroup from "./CryptoComparisonGroup";
-import TraditionalOddsCard from "./TraditionalOddsCard";
+import { useState, useEffect } from 'react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import ComparisonGroup from './ComparisonGroup'
+import CryptoComparisonGroup from './CryptoComparisonGroup'
+import TraditionalOddsCard from './TraditionalOddsCard'
 import {
 	CryptoMarketsResponse,
 	TraditionalOddsResponse,
@@ -19,6 +19,8 @@ import {
 	OthersComparison,
 	CombinedNFLResponse,
 	OrderbookResponse,
+	KalshiOrderbookResponse,
+	LimitlessOrderbookResponse,
 } from '@/lib/market-types'
 import { RefreshCw, AlertCircle } from 'lucide-react'
 
@@ -40,6 +42,9 @@ export default function MarketAggregatorDashboard() {
 	const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
 	const [activeTab, setActiveTab] = useState('nfl')
 	const [nflSubTab, setNflSubTab] = useState<'crypto' | 'traditional' | 'combined'>('combined')
+	const [orderbookSubTab, setOrderbookSubTab] = useState<'history' | 'kalshi' | 'limitless'>(
+		'history'
+	)
 	const [othersOffset, setOthersOffset] = useState(0)
 	const OTHERS_LIMIT = 10
 	const [rundownDate, setRundownDate] = useState<string>(new Date().toISOString().split('T')[0])
@@ -125,6 +130,18 @@ export default function MarketAggregatorDashboard() {
 	// Orderbook History State
 	const [orderbook, setOrderbook] = useState<OrderbookResponse | null>(null)
 	const [orderbookLoading, setOrderbookLoading] = useState(false)
+
+	// Kalshi Orderbook State
+	const [kalshiOrderbook, setKalshiOrderbook] = useState<KalshiOrderbookResponse | null>(null)
+	const [kalshiOrderbookLoading, setKalshiOrderbookLoading] = useState(false)
+	const [kalshiTicker, setKalshiTicker] = useState('KXNFLGAME-26-NE-KC')
+
+	// Limitless Orderbook State
+	const [limitlessOrderbook, setLimitlessOrderbook] = useState<LimitlessOrderbookResponse | null>(
+		null
+	)
+	const [limitlessOrderbookLoading, setLimitlessOrderbookLoading] = useState(false)
+	const [limitlessSlug, setLimitlessSlug] = useState('')
 
 	// Helper function to convert datetime-local to milliseconds
 	const getDefaultStartTime = () => {
@@ -379,6 +396,62 @@ export default function MarketAggregatorDashboard() {
 		fetchOrderbook()
 	}
 
+	// Fetch Kalshi Orderbook
+	const fetchKalshiOrderbook = async () => {
+		if (kalshiOrderbookLoading) return
+		setKalshiOrderbookLoading(true)
+		setError(null)
+		setKalshiOrderbook(null)
+
+		try {
+			const response = await fetch(`${API_BASE_URL}/kalshi/orderbook/${kalshiTicker}`)
+			if (!response.ok) {
+				const errorData = await response.json()
+				throw new Error(errorData.detail || 'Failed to fetch Kalshi orderbook')
+			}
+			const data = await response.json()
+			setKalshiOrderbook(data)
+		} catch (err: any) {
+			console.error('Error fetching Kalshi orderbook:', err)
+			setError(err.message || 'Failed to fetch Kalshi orderbook')
+		} finally {
+			setKalshiOrderbookLoading(false)
+		}
+	}
+
+	const handleKalshiOrderbookSubmit = (e: React.FormEvent) => {
+		e.preventDefault()
+		fetchKalshiOrderbook()
+	}
+
+	// Fetch Limitless Orderbook
+	const fetchLimitlessOrderbook = async () => {
+		if (limitlessOrderbookLoading) return
+		setLimitlessOrderbookLoading(true)
+		setError(null)
+		setLimitlessOrderbook(null)
+
+		try {
+			const response = await fetch(`${API_BASE_URL}/limitless/orderbook/${limitlessSlug}`)
+			if (!response.ok) {
+				const errorData = await response.json()
+				throw new Error(errorData.detail || 'Failed to fetch Limitless orderbook')
+			}
+			const data = await response.json()
+			setLimitlessOrderbook(data)
+		} catch (err: any) {
+			console.error('Error fetching Limitless orderbook:', err)
+			setError(err.message || 'Failed to fetch Limitless orderbook')
+		} finally {
+			setLimitlessOrderbookLoading(false)
+		}
+	}
+
+	const handleLimitlessOrderbookSubmit = (e: React.FormEvent) => {
+		e.preventDefault()
+		fetchLimitlessOrderbook()
+	}
+
 	return (
 		<div className='min-h-screen bg-[#0a0a0a] text-white'>
 			<div className='max-w-7xl mx-auto px-4 py-6'>
@@ -480,7 +553,7 @@ export default function MarketAggregatorDashboard() {
 								value='orderbook'
 								className='data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none bg-transparent text-gray-400 border-0 px-0 pb-2 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-white hover:text-gray-200'
 							>
-								Orderbook History
+								Orderbook
 							</TabsTrigger>
 						</TabsList>
 
@@ -1443,273 +1516,757 @@ export default function MarketAggregatorDashboard() {
 						)}
 					</TabsContent>
 
-					{/* Orderbook History Tab */}
+					{/* Orderbook Tab */}
 					<TabsContent value='orderbook' className='space-y-4'>
-						<div className='bg-[#1a1a1a] rounded-lg p-6 border border-gray-800'>
-							<h3 className='text-xl font-semibold text-white mb-4'>
-								Polymarket Orderbook History
-							</h3>
-							<form onSubmit={handleOrderbookSubmit}>
-								<div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-4'>
-									<div>
-										<label
-											htmlFor='token-id'
-											className='block text-sm font-medium text-gray-300 mb-2'
-										>
-											Token ID:
-										</label>
-										<input
-											type='text'
-											id='token-id'
-											value={orderbookParams.token_id}
-											onChange={(e) =>
-												setOrderbookParams({
-													...orderbookParams,
-													token_id: e.target.value,
-												})
-											}
-											className='w-full p-2 bg-[#0a0a0a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-gray-600'
-											required
-										/>
-									</div>
-									<div>
-										<label
-											htmlFor='limit'
-											className='block text-sm font-medium text-gray-300 mb-2'
-										>
-											Limit:
-										</label>
-										<input
-											type='number'
-											id='limit'
-											value={orderbookParams.limit}
-											onChange={(e) =>
-												setOrderbookParams({
-													...orderbookParams,
-													limit: e.target.value,
-												})
-											}
-											className='w-full p-2 bg-[#0a0a0a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-gray-600'
-											required
-											min='1'
-										/>
-									</div>
-									<div>
-										<label
-											htmlFor='start-time'
-											className='block text-sm font-medium text-gray-300 mb-2'
-										>
-											Start Time:
-										</label>
-										<input
-											type='datetime-local'
-											id='start-time'
-											value={orderbookParams.start_time}
-											onChange={(e) =>
-												setOrderbookParams({
-													...orderbookParams,
-													start_time: e.target.value,
-												})
-											}
-											className='w-full p-2 bg-[#0a0a0a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-gray-600'
-											required
-										/>
-									</div>
-									<div>
-										<label
-											htmlFor='end-time'
-											className='block text-sm font-medium text-gray-300 mb-2'
-										>
-											End Time:
-										</label>
-										<input
-											type='datetime-local'
-											id='end-time'
-											value={orderbookParams.end_time}
-											onChange={(e) =>
-												setOrderbookParams({
-													...orderbookParams,
-													end_time: e.target.value,
-												})
-											}
-											className='w-full p-2 bg-[#0a0a0a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-gray-600'
-											required
-										/>
-									</div>
-								</div>
-								<button
-									type='submit'
-									disabled={orderbookLoading}
-									className='px-6 py-2 bg-white text-black rounded-lg font-medium hover:bg-gray-100 disabled:bg-gray-600 disabled:text-gray-400 transition-colors'
-								>
-									{orderbookLoading ? 'Loading...' : 'Fetch Orderbook'}
-								</button>
-							</form>
+						{/* Orderbook Sub-tabs */}
+						<div className='flex gap-2 mb-4'>
+							<button
+								onClick={() => setOrderbookSubTab('history')}
+								className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+									orderbookSubTab === 'history'
+										? 'bg-white text-black'
+										: 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+								}`}
+							>
+								Polymarket
+							</button>
+							<button
+								onClick={() => setOrderbookSubTab('kalshi')}
+								className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+									orderbookSubTab === 'kalshi'
+										? 'bg-white text-black'
+										: 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+								}`}
+							>
+								Kalshi
+							</button>
+							<button
+								onClick={() => setOrderbookSubTab('limitless')}
+								className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+									orderbookSubTab === 'limitless'
+										? 'bg-white text-black'
+										: 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+								}`}
+							>
+								Limitless
+							</button>
 						</div>
 
-						{orderbook && (
+						{/* Orderbook History View */}
+						{orderbookSubTab === 'history' && (
 							<>
-								{orderbook.snapshots && orderbook.snapshots.length > 0 ? (
-									<div className='space-y-4'>
-										{orderbook.snapshots.map((snapshot, idx) => (
-											<div
-												key={idx}
-												className='bg-[#1a1a1a] rounded-lg p-6 border border-gray-800'
-											>
-												<div className='mb-4'>
-													<h3 className='text-lg font-semibold mb-2'>
-														Snapshot #{idx + 1}
-													</h3>
-													<div className='grid grid-cols-2 md:grid-cols-4 gap-4 text-sm'>
-														<div>
-															<span className='text-gray-400'>
-																Timestamp:
-															</span>
-															<div className='font-mono'>
-																{new Date(
-																	snapshot.timestamp
-																).toLocaleString()}
-															</div>
-														</div>
-														<div>
-															<span className='text-gray-400'>
-																Tick Size:
-															</span>
-															<div className='font-mono'>
-																{snapshot.tickSize}
-															</div>
-														</div>
-														<div>
-															<span className='text-gray-400'>
-																Min Order:
-															</span>
-															<div className='font-mono'>
-																{snapshot.minOrderSize}
-															</div>
-														</div>
-														<div>
-															<span className='text-gray-400'>
-																Neg Risk:
-															</span>
-															<div className='font-mono'>
-																{snapshot.negRisk ? 'Yes' : 'No'}
-															</div>
-														</div>
-													</div>
-													<div className='mt-2 text-xs text-gray-500'>
-														<div>Asset ID: {snapshot.assetId}</div>
-														<div>Market: {snapshot.market}</div>
-													</div>
-												</div>
-
-												<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-													{/* Bids */}
-													<div>
-														<h4 className='text-green-400 font-semibold mb-3 flex items-center gap-2'>
-															<span>
-																Bids ({snapshot.bids.length})
-															</span>
-														</h4>
-														<div className='bg-[#0a0a0a] rounded-lg overflow-hidden'>
-															<table className='w-full text-sm'>
-																<thead>
-																	<tr className='text-left border-b border-gray-800'>
-																		<th className='p-2 text-gray-400'>
-																			Price
-																		</th>
-																		<th className='p-2 text-gray-400 text-right'>
-																			Size
-																		</th>
-																	</tr>
-																</thead>
-																<tbody className='max-h-96 overflow-y-auto'>
-																	{snapshot.bids.map(
-																		(bid, bidIdx) => (
-																			<tr
-																				key={bidIdx}
-																				className='border-b border-gray-800 hover:bg-gray-800/50'
-																			>
-																				<td className='p-2 font-mono text-green-400'>
-																					{bid.price}
-																				</td>
-																				<td className='p-2 font-mono text-right'>
-																					{parseFloat(
-																						bid.size
-																					).toLocaleString()}
-																				</td>
-																			</tr>
-																		)
-																	)}
-																</tbody>
-															</table>
-														</div>
-													</div>
-
-													{/* Asks */}
-													<div>
-														<h4 className='text-red-400 font-semibold mb-3 flex items-center gap-2'>
-															<span>
-																Asks ({snapshot.asks.length})
-															</span>
-														</h4>
-														<div className='bg-[#0a0a0a] rounded-lg overflow-hidden'>
-															<table className='w-full text-sm'>
-																<thead>
-																	<tr className='text-left border-b border-gray-800'>
-																		<th className='p-2 text-gray-400'>
-																			Price
-																		</th>
-																		<th className='p-2 text-gray-400 text-right'>
-																			Size
-																		</th>
-																	</tr>
-																</thead>
-																<tbody className='max-h-96 overflow-y-auto'>
-																	{snapshot.asks.map(
-																		(ask, askIdx) => (
-																			<tr
-																				key={askIdx}
-																				className='border-b border-gray-800 hover:bg-gray-800/50'
-																			>
-																				<td className='p-2 font-mono text-red-400'>
-																					{ask.price}
-																				</td>
-																				<td className='p-2 font-mono text-right'>
-																					{parseFloat(
-																						ask.size
-																					).toLocaleString()}
-																				</td>
-																			</tr>
-																		)
-																	)}
-																</tbody>
-															</table>
-														</div>
-													</div>
-												</div>
+								<div className='bg-[#1a1a1a] rounded-lg p-6 border border-gray-800'>
+									<h3 className='text-xl font-semibold text-white mb-4'>
+										Polymarket Orderbook History
+									</h3>
+									<form onSubmit={handleOrderbookSubmit}>
+										<div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-4'>
+											<div>
+												<label
+													htmlFor='token-id'
+													className='block text-sm font-medium text-gray-300 mb-2'
+												>
+													Token ID:
+												</label>
+												<input
+													type='text'
+													id='token-id'
+													value={orderbookParams.token_id}
+													onChange={(e) =>
+														setOrderbookParams({
+															...orderbookParams,
+															token_id: e.target.value,
+														})
+													}
+													className='w-full p-2 bg-[#0a0a0a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-gray-600'
+													required
+												/>
 											</div>
-										))}
+											<div>
+												<label
+													htmlFor='limit'
+													className='block text-sm font-medium text-gray-300 mb-2'
+												>
+													Limit:
+												</label>
+												<input
+													type='number'
+													id='limit'
+													value={orderbookParams.limit}
+													onChange={(e) =>
+														setOrderbookParams({
+															...orderbookParams,
+															limit: e.target.value,
+														})
+													}
+													className='w-full p-2 bg-[#0a0a0a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-gray-600'
+													required
+													min='1'
+												/>
+											</div>
+											<div>
+												<label
+													htmlFor='start-time'
+													className='block text-sm font-medium text-gray-300 mb-2'
+												>
+													Start Time:
+												</label>
+												<input
+													type='datetime-local'
+													id='start-time'
+													value={orderbookParams.start_time}
+													onChange={(e) =>
+														setOrderbookParams({
+															...orderbookParams,
+															start_time: e.target.value,
+														})
+													}
+													className='w-full p-2 bg-[#0a0a0a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-gray-600'
+													required
+												/>
+											</div>
+											<div>
+												<label
+													htmlFor='end-time'
+													className='block text-sm font-medium text-gray-300 mb-2'
+												>
+													End Time:
+												</label>
+												<input
+													type='datetime-local'
+													id='end-time'
+													value={orderbookParams.end_time}
+													onChange={(e) =>
+														setOrderbookParams({
+															...orderbookParams,
+															end_time: e.target.value,
+														})
+													}
+													className='w-full p-2 bg-[#0a0a0a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-gray-600'
+													required
+												/>
+											</div>
+										</div>
+										<button
+											type='submit'
+											disabled={orderbookLoading}
+											className='px-6 py-2 bg-white text-black rounded-lg font-medium hover:bg-gray-100 disabled:bg-gray-600 disabled:text-gray-400 transition-colors'
+										>
+											{orderbookLoading ? 'Loading...' : 'Fetch Orderbook'}
+										</button>
+									</form>
+								</div>
 
-										{/* Pagination info */}
-										{orderbook.pagination && (
-											<div className='bg-[#1a1a1a] rounded-lg p-4 border border-gray-800'>
-												<div className='flex items-center justify-between text-sm'>
-													<div className='text-gray-400'>
-														Showing {orderbook.pagination.count} of{' '}
-														{orderbook.pagination.count} snapshots
-													</div>
-													{orderbook.pagination.has_more && (
-														<div className='text-yellow-400'>
-															More results available
+								{orderbook && (
+									<>
+										{orderbook.snapshots && orderbook.snapshots.length > 0 ? (
+											<div className='space-y-4'>
+												{orderbook.snapshots.map((snapshot, idx) => (
+													<div
+														key={idx}
+														className='bg-[#1a1a1a] rounded-lg p-6 border border-gray-800'
+													>
+														<div className='mb-4'>
+															<h3 className='text-lg font-semibold mb-2'>
+																Snapshot #{idx + 1}
+															</h3>
+															<div className='grid grid-cols-2 md:grid-cols-4 gap-4 text-sm'>
+																<div>
+																	<span className='text-gray-400'>
+																		Timestamp:
+																	</span>
+																	<div className='font-mono'>
+																		{new Date(
+																			snapshot.timestamp
+																		).toLocaleString()}
+																	</div>
+																</div>
+																<div>
+																	<span className='text-gray-400'>
+																		Tick Size:
+																	</span>
+																	<div className='font-mono'>
+																		{snapshot.tickSize}
+																	</div>
+																</div>
+																<div>
+																	<span className='text-gray-400'>
+																		Min Order:
+																	</span>
+																	<div className='font-mono'>
+																		{snapshot.minOrderSize}
+																	</div>
+																</div>
+																<div>
+																	<span className='text-gray-400'>
+																		Neg Risk:
+																	</span>
+																	<div className='font-mono'>
+																		{snapshot.negRisk
+																			? 'Yes'
+																			: 'No'}
+																	</div>
+																</div>
+															</div>
+															<div className='mt-2 text-xs text-gray-500'>
+																<div>
+																	Asset ID: {snapshot.assetId}
+																</div>
+																<div>Market: {snapshot.market}</div>
+															</div>
 														</div>
-													)}
-												</div>
+
+														<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+															{/* Bids */}
+															<div>
+																<h4 className='text-green-400 font-semibold mb-3 flex items-center gap-2'>
+																	<span>
+																		Bids ({snapshot.bids.length}
+																		)
+																	</span>
+																</h4>
+																<div className='bg-[#0a0a0a] rounded-lg overflow-hidden'>
+																	<table className='w-full text-sm'>
+																		<thead>
+																			<tr className='text-left border-b border-gray-800'>
+																				<th className='p-2 text-gray-400'>
+																					Price
+																				</th>
+																				<th className='p-2 text-gray-400 text-right'>
+																					Size
+																				</th>
+																			</tr>
+																		</thead>
+																		<tbody className='max-h-96 overflow-y-auto'>
+																			{snapshot.bids.map(
+																				(bid, bidIdx) => (
+																					<tr
+																						key={bidIdx}
+																						className='border-b border-gray-800 hover:bg-gray-800/50'
+																					>
+																						<td className='p-2 font-mono text-green-400'>
+																							{
+																								bid.price
+																							}
+																						</td>
+																						<td className='p-2 font-mono text-right'>
+																							{parseFloat(
+																								bid.size
+																							).toLocaleString()}
+																						</td>
+																					</tr>
+																				)
+																			)}
+																		</tbody>
+																	</table>
+																</div>
+															</div>
+
+															{/* Asks */}
+															<div>
+																<h4 className='text-red-400 font-semibold mb-3 flex items-center gap-2'>
+																	<span>
+																		Asks ({snapshot.asks.length}
+																		)
+																	</span>
+																</h4>
+																<div className='bg-[#0a0a0a] rounded-lg overflow-hidden'>
+																	<table className='w-full text-sm'>
+																		<thead>
+																			<tr className='text-left border-b border-gray-800'>
+																				<th className='p-2 text-gray-400'>
+																					Price
+																				</th>
+																				<th className='p-2 text-gray-400 text-right'>
+																					Size
+																				</th>
+																			</tr>
+																		</thead>
+																		<tbody className='max-h-96 overflow-y-auto'>
+																			{snapshot.asks.map(
+																				(ask, askIdx) => (
+																					<tr
+																						key={askIdx}
+																						className='border-b border-gray-800 hover:bg-gray-800/50'
+																					>
+																						<td className='p-2 font-mono text-red-400'>
+																							{
+																								ask.price
+																							}
+																						</td>
+																						<td className='p-2 font-mono text-right'>
+																							{parseFloat(
+																								ask.size
+																							).toLocaleString()}
+																						</td>
+																					</tr>
+																				)
+																			)}
+																		</tbody>
+																	</table>
+																</div>
+															</div>
+														</div>
+													</div>
+												))}
+
+												{/* Pagination info */}
+												{orderbook.pagination && (
+													<div className='bg-[#1a1a1a] rounded-lg p-4 border border-gray-800'>
+														<div className='flex items-center justify-between text-sm'>
+															<div className='text-gray-400'>
+																Showing {orderbook.pagination.count}{' '}
+																of {orderbook.pagination.count}{' '}
+																snapshots
+															</div>
+															{orderbook.pagination.has_more && (
+																<div className='text-yellow-400'>
+																	More results available
+																</div>
+															)}
+														</div>
+													</div>
+												)}
+											</div>
+										) : (
+											<div className='text-center text-gray-500 py-8'>
+												No orderbook snapshots available
 											</div>
 										)}
-									</div>
-								) : (
+									</>
+								)}
+							</>
+						)}
+
+						{/* Kalshi Orderbook View */}
+						{orderbookSubTab === 'kalshi' && (
+							<>
+								<div className='bg-[#1a1a1a] rounded-lg p-6 border border-gray-800'>
+									<h3 className='text-xl font-semibold text-white mb-4'>
+										Kalshi Market Orderbook
+									</h3>
+									<form onSubmit={handleKalshiOrderbookSubmit}>
+										<div className='flex items-center gap-4 mb-4'>
+											<label
+												htmlFor='kalshi-ticker'
+												className='text-sm font-medium text-gray-300'
+											>
+												Market Ticker:
+											</label>
+											<input
+												type='text'
+												id='kalshi-ticker'
+												value={kalshiTicker}
+												onChange={(e) => setKalshiTicker(e.target.value)}
+												placeholder='e.g., KXNFLGAME-26-NE-KC'
+												className='flex-1 p-2 bg-[#0a0a0a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-gray-600'
+												required
+											/>
+											<button
+												type='submit'
+												disabled={kalshiOrderbookLoading}
+												className='px-6 py-2 bg-white text-black rounded-lg font-medium hover:bg-gray-100 disabled:bg-gray-600 disabled:text-gray-400 transition-colors'
+											>
+												{kalshiOrderbookLoading
+													? 'Loading...'
+													: 'Fetch Orderbook'}
+											</button>
+										</div>
+										<div className='text-xs text-gray-400'>
+											Enter a Kalshi market ticker to view its current
+											orderbook. Example: KXNFLGAME-26-NE-KC
+										</div>
+									</form>
+								</div>
+
+								{kalshiOrderbook && (
+									<>
+										<div className='bg-[#1a1a1a] rounded-lg p-6 border border-gray-800'>
+											<div className='mb-4'>
+												<h3 className='text-lg font-semibold mb-2'>
+													Market: {kalshiOrderbook.ticker}
+												</h3>
+												<div className='text-sm text-gray-400'>
+													Updated:{' '}
+													{new Date(
+														kalshiOrderbook.timestamp
+													).toLocaleString()}
+												</div>
+											</div>
+
+											<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+												{/* Yes Bids */}
+												<div>
+													<h4 className='text-green-400 font-semibold mb-3 flex items-center gap-2'>
+														<span>
+															Yes Bids (
+															{kalshiOrderbook.orderbook.yes
+																?.length || 0}
+															)
+														</span>
+													</h4>
+													<div className='bg-[#0a0a0a] rounded-lg overflow-hidden'>
+														<table className='w-full text-sm'>
+															<thead>
+																<tr className='text-left border-b border-gray-800'>
+																	<th className='p-2 text-gray-400'>
+																		Price (¢)
+																	</th>
+																	<th className='p-2 text-gray-400 text-right'>
+																		Quantity
+																	</th>
+																</tr>
+															</thead>
+															<tbody className='max-h-96 overflow-y-auto'>
+																{kalshiOrderbook.orderbook.yes?.map(
+																	(level, idx) => (
+																		<tr
+																			key={idx}
+																			className='border-b border-gray-800 hover:bg-gray-800/50'
+																		>
+																			<td className='p-2 font-mono text-green-400'>
+																				{level[0]}¢
+																			</td>
+																			<td className='p-2 font-mono text-right'>
+																				{level[1]?.toLocaleString() ||
+																					'-'}
+																			</td>
+																		</tr>
+																	)
+																) || (
+																	<tr>
+																		<td
+																			colSpan={2}
+																			className='p-4 text-center text-gray-500'
+																		>
+																			No yes bids available
+																		</td>
+																	</tr>
+																)}
+															</tbody>
+														</table>
+													</div>
+												</div>
+
+												{/* No Bids */}
+												<div>
+													<h4 className='text-red-400 font-semibold mb-3 flex items-center gap-2'>
+														<span>
+															No Bids (
+															{kalshiOrderbook.orderbook.no?.length ||
+																0}
+															)
+														</span>
+													</h4>
+													<div className='bg-[#0a0a0a] rounded-lg overflow-hidden'>
+														<table className='w-full text-sm'>
+															<thead>
+																<tr className='text-left border-b border-gray-800'>
+																	<th className='p-2 text-gray-400'>
+																		Price (¢)
+																	</th>
+																	<th className='p-2 text-gray-400 text-right'>
+																		Quantity
+																	</th>
+																</tr>
+															</thead>
+															<tbody className='max-h-96 overflow-y-auto'>
+																{kalshiOrderbook.orderbook.no?.map(
+																	(level, idx) => (
+																		<tr
+																			key={idx}
+																			className='border-b border-gray-800 hover:bg-gray-800/50'
+																		>
+																			<td className='p-2 font-mono text-red-400'>
+																				{level[0]}¢
+																			</td>
+																			<td className='p-2 font-mono text-right'>
+																				{level[1]?.toLocaleString() ||
+																					'-'}
+																			</td>
+																		</tr>
+																	)
+																) || (
+																	<tr>
+																		<td
+																			colSpan={2}
+																			className='p-4 text-center text-gray-500'
+																		>
+																			No no bids available
+																		</td>
+																	</tr>
+																)}
+															</tbody>
+														</table>
+													</div>
+												</div>
+											</div>
+
+											{/* Additional Info */}
+											<div className='mt-4 p-4 bg-[#0a0a0a] rounded-lg'>
+												<h4 className='text-sm font-semibold text-gray-300 mb-2'>
+													About Kalshi Orderbook
+												</h4>
+												<p className='text-xs text-gray-400'>
+													Kalshi only shows bids for both yes and no
+													sides. A bid for "Yes" at X¢ is equivalent to an
+													ask for "No" at (100-X)¢ with identical contract
+													sizes. For example, a yes bid at 7¢ is the same
+													as a no ask at 93¢.
+												</p>
+											</div>
+										</div>
+									</>
+								)}
+
+								{!kalshiOrderbook && !kalshiOrderbookLoading && (
 									<div className='text-center text-gray-500 py-8'>
-										No orderbook snapshots available
+										Enter a market ticker and click "Fetch Orderbook" to view
+										the orderbook data
+									</div>
+								)}
+							</>
+						)}
+
+						{/* Limitless Orderbook View */}
+						{orderbookSubTab === 'limitless' && (
+							<>
+								<div className='bg-[#1a1a1a] rounded-lg p-6 border border-gray-800'>
+									<h3 className='text-xl font-semibold text-white mb-4'>
+										Limitless Market Orderbook
+									</h3>
+									<form onSubmit={handleLimitlessOrderbookSubmit}>
+										<div className='flex items-center gap-4 mb-4'>
+											<label
+												htmlFor='limitless-slug'
+												className='text-sm font-medium text-gray-300'
+											>
+												Market Slug:
+											</label>
+											<input
+												type='text'
+												id='limitless-slug'
+												value={limitlessSlug}
+												onChange={(e) => setLimitlessSlug(e.target.value)}
+												placeholder='Enter market slug from limitless.exchange'
+												className='flex-1 p-2 bg-[#0a0a0a] border border-gray-700 rounded-md text-white focus:outline-none focus:border-gray-600'
+												required
+											/>
+											<button
+												type='submit'
+												disabled={limitlessOrderbookLoading}
+												className='px-6 py-2 bg-white text-black rounded-lg font-medium hover:bg-gray-100 disabled:bg-gray-600 disabled:text-gray-400 transition-colors'
+											>
+												{limitlessOrderbookLoading
+													? 'Loading...'
+													: 'Fetch Orderbook'}
+											</button>
+										</div>
+										<div className='text-xs text-gray-400'>
+											Enter a Limitless market slug to view its current
+											orderbook. Find valid market slugs on{' '}
+											<a
+												href='https://limitless.exchange'
+												target='_blank'
+												rel='noopener noreferrer'
+												className='text-blue-400 hover:text-blue-300 underline'
+											>
+												limitless.exchange
+											</a>
+										</div>
+									</form>
+								</div>
+
+								{limitlessOrderbook && (
+									<>
+										<div className='bg-[#1a1a1a] rounded-lg p-6 border border-gray-800'>
+											<div className='mb-4'>
+												<h3 className='text-lg font-semibold mb-2'>
+													Market: {limitlessSlug}
+												</h3>
+												<div className='grid grid-cols-2 md:grid-cols-4 gap-4 text-sm'>
+													<div>
+														<span className='text-gray-400'>
+															Last Trade Price:
+														</span>
+														<div className='font-mono text-lg'>
+															{(
+																limitlessOrderbook.lastTradePrice *
+																100
+															).toFixed(2)}
+															¢
+														</div>
+													</div>
+													<div>
+														<span className='text-gray-400'>
+															Adjusted Midpoint:
+														</span>
+														<div className='font-mono text-lg'>
+															{(
+																limitlessOrderbook.adjustedMidpoint *
+																100
+															).toFixed(2)}
+															¢
+														</div>
+													</div>
+													<div>
+														<span className='text-gray-400'>
+															Max Spread:
+														</span>
+														<div className='font-mono text-lg'>
+															{(
+																limitlessOrderbook.maxSpread * 100
+															).toFixed(2)}
+															¢
+														</div>
+													</div>
+													<div>
+														<span className='text-gray-400'>
+															Min Size:
+														</span>
+														<div className='font-mono text-lg'>
+															{limitlessOrderbook.minSize}
+														</div>
+													</div>
+												</div>
+												<div className='mt-2 text-xs text-gray-500'>
+													<div>
+														Token ID: {limitlessOrderbook.tokenId}
+													</div>
+												</div>
+											</div>
+
+											<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+												{/* Bids */}
+												<div>
+													<h4 className='text-green-400 font-semibold mb-3 flex items-center gap-2'>
+														<span>
+															Bids (
+															{limitlessOrderbook.bids?.length || 0})
+														</span>
+													</h4>
+													<div className='bg-[#0a0a0a] rounded-lg overflow-hidden'>
+														<table className='w-full text-sm'>
+															<thead>
+																<tr className='text-left border-b border-gray-800'>
+																	<th className='p-2 text-gray-400'>
+																		Price (¢)
+																	</th>
+																	<th className='p-2 text-gray-400 text-right'>
+																		Size
+																	</th>
+																</tr>
+															</thead>
+															<tbody className='max-h-96 overflow-y-auto'>
+																{limitlessOrderbook.bids?.map(
+																	(bid, idx) => (
+																		<tr
+																			key={idx}
+																			className='border-b border-gray-800 hover:bg-gray-800/50'
+																		>
+																			<td className='p-2 font-mono text-green-400'>
+																				{(
+																					bid.price * 100
+																				).toFixed(2)}
+																				¢
+																			</td>
+																			<td className='p-2 font-mono text-right'>
+																				{bid.size?.toLocaleString() ||
+																					'-'}
+																			</td>
+																		</tr>
+																	)
+																) || (
+																	<tr>
+																		<td
+																			colSpan={2}
+																			className='p-4 text-center text-gray-500'
+																		>
+																			No bids available
+																		</td>
+																	</tr>
+																)}
+															</tbody>
+														</table>
+													</div>
+												</div>
+
+												{/* Asks */}
+												<div>
+													<h4 className='text-red-400 font-semibold mb-3 flex items-center gap-2'>
+														<span>
+															Asks (
+															{limitlessOrderbook.asks?.length || 0})
+														</span>
+													</h4>
+													<div className='bg-[#0a0a0a] rounded-lg overflow-hidden'>
+														<table className='w-full text-sm'>
+															<thead>
+																<tr className='text-left border-b border-gray-800'>
+																	<th className='p-2 text-gray-400'>
+																		Price (¢)
+																	</th>
+																	<th className='p-2 text-gray-400 text-right'>
+																		Size
+																	</th>
+																</tr>
+															</thead>
+															<tbody className='max-h-96 overflow-y-auto'>
+																{limitlessOrderbook.asks?.map(
+																	(ask, idx) => (
+																		<tr
+																			key={idx}
+																			className='border-b border-gray-800 hover:bg-gray-800/50'
+																		>
+																			<td className='p-2 font-mono text-red-400'>
+																				{(
+																					ask.price * 100
+																				).toFixed(2)}
+																				¢
+																			</td>
+																			<td className='p-2 font-mono text-right'>
+																				{ask.size?.toLocaleString() ||
+																					'-'}
+																			</td>
+																		</tr>
+																	)
+																) || (
+																	<tr>
+																		<td
+																			colSpan={2}
+																			className='p-4 text-center text-gray-500'
+																		>
+																			No asks available
+																		</td>
+																	</tr>
+																)}
+															</tbody>
+														</table>
+													</div>
+												</div>
+											</div>
+
+											{/* Additional Info */}
+											<div className='mt-4 p-4 bg-[#0a0a0a] rounded-lg'>
+												<h4 className='text-sm font-semibold text-gray-300 mb-2'>
+													About Limitless Orderbook
+												</h4>
+												<p className='text-xs text-gray-400'>
+													Limitless shows both bids and asks for the
+													market. The adjusted midpoint takes into account
+													the depth and spread of the orderbook. All
+													prices are shown in cents (¢) for easier
+													reading.
+												</p>
+											</div>
+										</div>
+									</>
+								)}
+
+								{!limitlessOrderbook && !limitlessOrderbookLoading && (
+									<div className='text-center text-gray-500 py-8'>
+										Enter a market slug and click "Fetch Orderbook" to view the
+										orderbook data
 									</div>
 								)}
 							</>
