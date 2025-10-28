@@ -31,13 +31,33 @@ class KalshiClient:
     def __init__(self, api_key: Optional[str] = None, private_key_path: Optional[str] = None):
         self.api_base = "https://api.elections.kalshi.com/trade-api/v2"
         self.api_key = api_key or os.getenv("KALSHI_API_KEY") or config.get('API_KEYS', 'KALSHI_API_KEY', fallback=None)
-        self.private_key_path = private_key_path or os.getenv("KALSHI_PRIVATE_KEY_PATH")
+        print(f"Kalshi API key: {self.api_key}")
+        
+        # Get the private key path and resolve it if it's relative
+        raw_private_key_path = private_key_path or os.getenv("KALSHI_PRIVATE_KEY_PATH") or config.get('API_KEYS', 'KALSHI_PRIVATE_KEY_PATH', fallback=None)
+        if raw_private_key_path:
+            # If the path is relative, resolve it relative to the project root
+            if not os.path.isabs(raw_private_key_path):
+                # Get the project root (two levels up from api_clients directory)
+                project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                self.private_key_path = os.path.join(project_root, raw_private_key_path)
+            else:
+                self.private_key_path = raw_private_key_path
+        else:
+            self.private_key_path = None
+        
+        print(f"Kalshi private key path: {self.private_key_path}")
         self.token = None
         self.token_expiry = 0
         
     def _load_private_key(self) -> Optional[str]:
         """Load RSA private key from file"""
-        if not self.private_key_path or not os.path.exists(self.private_key_path):
+        if not self.private_key_path:
+            print("Warning: No Kalshi private key path configured")
+            return None
+            
+        if not os.path.exists(self.private_key_path):
+            print(f"Private key path does not exist: {self.private_key_path}")
             return None
             
         try:

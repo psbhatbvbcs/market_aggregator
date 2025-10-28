@@ -49,7 +49,7 @@ app.add_middleware(
 
 # Initialize clients
 poly_client = PolymarketClient()
-kalshi_client = KalshiClient(api_key=config.get('API_KEYS', 'KALSHI_API_KEY', fallback=None))
+kalshi_client = KalshiClient(api_key=config.get('API_KEYS', 'KALSHI_API_KEY', fallback=None), private_key_path=config.get('API_KEYS', 'KALSHI_PRIVATE_KEY_PATH', fallback=None))
 limitless_client = LimitlessClient()
 rundown_client = RundownClient(api_key=config.get('API_KEYS', 'RUNDOWN_API_KEY', fallback=None))
 dome_client = DomeAPIClient(api_key=config.get('API_KEYS', 'DOME_API_KEY', fallback=None))
