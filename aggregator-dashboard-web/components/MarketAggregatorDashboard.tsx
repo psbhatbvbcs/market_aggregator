@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import ComparisonGroup from './ComparisonGroup'
+import MarketWithOrderbook from './MarketWithOrderbook'
 import CryptoComparisonGroup from './CryptoComparisonGroup'
 import TraditionalOddsCard from './TraditionalOddsCard'
 import ArbitrageTracker from "./ArbitrageTracker";
@@ -1202,7 +1203,7 @@ export default function MarketAggregatorDashboard() {
 								{nflCrypto.comparisons.length > 0 ? (
 									<div className='space-y-4'>
 										{nflCrypto.comparisons.map((comp, idx) => (
-											<ComparisonGroup key={idx} comparison={comp} />
+											<MarketWithOrderbook key={idx} comparison={comp} />
 										))}
 									</div>
 								) : (
@@ -1308,7 +1309,7 @@ export default function MarketAggregatorDashboard() {
 								{politics.comparisons.length > 0 ? (
 									<div className='space-y-4'>
 										{politics.comparisons.map((comp, idx) => (
-											<ComparisonGroup key={idx} comparison={comp} />
+											<MarketWithOrderbook key={idx} comparison={comp} />
 										))}
 									</div>
 								) : (
@@ -2284,6 +2285,7 @@ export default function MarketAggregatorDashboard() {
 							</>
 						)}
 					</TabsContent>
+
 				</Tabs>
 
 				{/* Footer */}
