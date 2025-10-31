@@ -1,10 +1,10 @@
 "use client"
 
-import { Comparison } from "@/lib/market-types"
+import { Comparison, CryptoComparison } from "@/lib/market-types"
 import MarketOrderbook from "./MarketOrderbook"
 
 interface MarketWithOrderbookProps {
-  comparison: Comparison
+  comparison: Comparison | CryptoComparison
 }
 
 export default function MarketWithOrderbook({ comparison }: MarketWithOrderbookProps) {
@@ -47,7 +47,16 @@ export default function MarketWithOrderbook({ comparison }: MarketWithOrderbookP
       }
     }
 
-    // Default Limitless data
+    if (platform === "Limitless" && 'limitless' in comparison && comparison.limitless) {
+      return {
+        liquidity: "$2.1M", 
+        volume: "$95K",
+        yesPercentage: Math.round((comparison.limitless.outcomes[0]?.price || 0.5) * 100),
+        noPercentage: Math.round((comparison.limitless.outcomes[1]?.price || 0.5) * 100)
+      }
+    }
+
+    // Default data
     return {
       liquidity: "$2.1M", 
       volume: "$95K",
@@ -100,12 +109,14 @@ export default function MarketWithOrderbook({ comparison }: MarketWithOrderbookP
             />
           )}
 
-          {/* Limitless Orderbook (always show as example) */}
-          <MarketOrderbook
-            platform="Limitless"
-            status="Active"
-            {...getPlatformData("Limitless")}
-          />
+          {/* Limitless Orderbook */}
+          {'limitless' in comparison && comparison.limitless && (
+            <MarketOrderbook
+              platform="Limitless"
+              status="Active"
+              {...getPlatformData("Limitless")}
+            />
+          )}
         </div>
       </div>
     </div>

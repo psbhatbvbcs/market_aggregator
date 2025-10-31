@@ -1286,7 +1286,7 @@ export default function MarketAggregatorDashboard() {
 								{dome.comparisons.length > 0 ? (
 									<div className='space-y-4'>
 										{dome.comparisons.map((comp, idx) => (
-											<CryptoComparisonGroup
+											<MarketWithOrderbook
 												key={idx}
 												comparison={comp as any}
 											/>
@@ -1368,7 +1368,7 @@ export default function MarketAggregatorDashboard() {
 								{others.comparisons && others.comparisons.length > 0 ? (
 									<div className='space-y-6'>
 										{others.comparisons.map((comp, idx) => (
-											<ComparisonGroup key={idx} comparison={comp as any} />
+											<MarketWithOrderbook key={idx} comparison={comp as any} />
 										))}
 									</div>
 								) : (
@@ -1424,7 +1424,7 @@ export default function MarketAggregatorDashboard() {
 								{crypto.comparisons.length > 0 ? (
 									<div className='space-y-4'>
 										{crypto.comparisons.map((comp, idx) => (
-											<CryptoComparisonGroup key={idx} comparison={comp} />
+											<MarketWithOrderbook key={idx} comparison={comp} />
 										))}
 									</div>
 								) : (
