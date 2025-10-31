@@ -57,7 +57,8 @@ const mockData = [
 
 export default function HistoricalData() {
   return (
-    <div className="bg-black text-white p-8">
+    <div className="min-h-screen bg-[#0a0a0a] text-white">
+      <div className="w-full px-8 py-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Historical Data</h1>
         <button className="bg-gray-800 text-white px-4 py-2 rounded-lg">
@@ -123,6 +124,7 @@ export default function HistoricalData() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   )
 }
